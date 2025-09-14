@@ -27,15 +27,17 @@ public static class AopProxyExtensions
                 .Intersect(aopAttributeTypes)
                 .Distinct()
                 .ToList();
-            if (!serviceAopAttributeTypes.Any()) continue;
+            if (serviceAopAttributeTypes.Count == 0) continue;
 
-            var serviceAopBehaviorInterfaces = serviceAopAttributeTypes.Select(x => typeof(IAopBehavior<>).MakeGenericType(x)).ToList();
+            var serviceAopBehaviorInterfaces = serviceAopAttributeTypes
+                .Select(x => typeof(IAopBehavior<>).MakeGenericType(x))
+                .ToList();
 
             var serviceBehaviorTypes = aopBehaviorTypes
                 .IntersectBy(serviceAopBehaviorInterfaces,
                     x => x.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAopBehavior<>)))
                 .ToList();
-            if (!serviceBehaviorTypes.Any()) continue;
+            if (serviceBehaviorTypes.Count == 0) continue;
 
             services.Remove(registration);
             services.Add(new ServiceDescriptor(registration.ImplementationType, registration.ImplementationType, registration.Lifetime));
@@ -44,12 +46,13 @@ public static class AopProxyExtensions
                 var target = services.GetRequiredService(registration.ImplementationType);
 
                 var proxyType = typeof(AopProxy<>).MakeGenericType(registration.ServiceType);
-
-                var behaviors = serviceBehaviorTypes.Select(x => services.GetService(x) as IAopBehavior).ToList();
-
                 var factoryMethod = proxyType.GetMethod(nameof(AopProxy<object>.Decorate));
-                return factoryMethod?.Invoke(null, [target, behaviors])
-                    ?? throw new InvalidOperationException($"Could not instantiate object for type {proxyType}");
+
+                var serviceBehaviors = serviceBehaviorTypes
+                    .Select(x => services.GetService(x) as IAopBehavior)
+                    .ToList();
+                return factoryMethod?.Invoke(null, [target, serviceBehaviors])
+                    ?? throw new InvalidOperationException($"Could not instantiate AoP proxy for type {registration.ServiceType}");
             }, registration.Lifetime));
         }
 
