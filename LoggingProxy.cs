@@ -13,7 +13,7 @@ public class LoggingProxy<T> : DispatchProxy where T : class
     {
         if (targetMethod == null || Target == null) return null;
 
-        var implementedTargetMethod = Target.GetType().GetMethod(targetMethod.Name);
+        var implementedTargetMethod = GetImplementedMethod(targetMethod, Target);
         if (implementedTargetMethod == null) return null;
 
         if (HasProxyLoggingEnabled(implementedTargetMethod))
@@ -25,6 +25,20 @@ public class LoggingProxy<T> : DispatchProxy where T : class
             Logger?.LogInformation("End method {MethodInfo}, result: {Result}", targetMethod.Name, result);
 
         return result;
+    }
+
+    private static MethodInfo GetImplementedMethod(MethodInfo interfaceMethod, T target)
+    {
+        var targetInterface = interfaceMethod.DeclaringType!;
+        var interfaceMap = target.GetType().GetInterfaceMap(targetInterface);
+        for (int i = 0; i < interfaceMap.InterfaceMethods.Length; i++)
+        {
+            if (interfaceMap.InterfaceMethods[i] == interfaceMethod)
+            {
+                return interfaceMap.TargetMethods[i];
+            }
+        }
+        throw new InvalidOperationException($"No implementation for the specific method '{interfaceMethod.Name}'");
     }
 
     private static bool HasProxyLoggingEnabled(MethodInfo targetMethod)

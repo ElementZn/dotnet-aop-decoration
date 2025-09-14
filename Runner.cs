@@ -8,7 +8,7 @@ public class Runner(IMainService mainService, ILogger<Runner> logger)
     {
         logger.LogInformation("Start RUN");
 
-        mainService.GetSum(2, 4);
+        mainService.GetSum(2, 4, 6);
         mainService.GetIncrement(13);
 
         logger.LogInformation("End RUN");
