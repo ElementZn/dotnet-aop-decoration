@@ -16,24 +16,25 @@ public class AopProxy<T> : DispatchProxy where T : class
         var implementedTargetMethod = GetImplementedMethod(targetMethod, Target);
         if (implementedTargetMethod == null) return null;
 
-        object?[]? chainArgs = [..args];
-        MethodInfo chainMethodInfo = implementedTargetMethod;
-        object chainTarget = Target;
-        Func<object?> chainMethodCall = () => chainMethodInfo.Invoke(chainTarget, chainArgs);
+        var invocationDetails = new MethodInvocationDetails
+        {
+            Name = implementedTargetMethod.Name,
+            Args = args ?? [],
+            Target = Target,
+            Next = () => implementedTargetMethod.Invoke(Target, args)
+        };
+
         foreach (var behavior in Behaviors)
         {
             var behaviorInterface = behavior.GetType().GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAopBehavior<>));
             var aopAttributeType = behaviorInterface.GetGenericArguments()[0];
-            if(!implementedTargetMethod.CustomAttributes.Any(x=> x.AttributeType == aopAttributeType))
+            if (!implementedTargetMethod.CustomAttributes.Any(x => x.AttributeType == aopAttributeType))
                 continue;
 
-            var previousArgs = chainArgs;
-            chainArgs = [chainTarget, chainMethodInfo, previousArgs];
-            chainTarget = behavior;
-            chainMethodInfo = behavior.GetType().GetMethod(nameof(IAopBehavior.InvokeWrapped));
-            chainMethodCall = () => chainMethodInfo.Invoke(chainTarget, chainArgs);
+            var previousInvocation = invocationDetails;
+            invocationDetails = invocationDetails with { Next = () => behavior.InvokeWrapped(previousInvocation) };
         }
-        var result = chainMethodCall();
+        var result = invocationDetails.Next();
 
         return result;
     }
@@ -70,7 +71,15 @@ public interface IAopBehavior<T> : IAopBehavior where T : AopAttibute { }
 
 public interface IAopBehavior
 {
-    public object? InvokeWrapped(object targetObject, MethodInfo targetMethod, object?[]? args);
+    public object? InvokeWrapped(MethodInvocationDetails invocationDetails);
+}
+
+public record MethodInvocationDetails
+{
+    public required string Name { get; init; }
+    public required object Target { get; init; }
+    public required object?[] Args { get; init; }
+    public required Func<object?> Next { get; init; }
 }
 
 public static class AopProxyExtensions
