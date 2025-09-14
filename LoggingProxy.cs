@@ -61,9 +61,6 @@ public class LoggingProxy<T> : DispatchProxy where T : class
 
 public abstract class AopAttibute : Attribute { }
 
-[AttributeUsage(AttributeTargets.Method)]
-public class EnableProxyLoggingAttribute : AopAttibute { }
-
 public static class LoggingProxyExtensions
 {
     public static IServiceCollection AddDecoratedScoped<TService, TImplementation>(this IServiceCollection services)

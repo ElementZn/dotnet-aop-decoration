@@ -11,20 +11,13 @@ public interface IMainService
 public class MainService : IMainService
 {
     [EnableProxyLogging]
-    public int GetIncrement(int a)
-    {
-        return a + 1;
-    }
-
+    public int GetIncrement(int a) => a + 1;
     [EnableProxyLogging]
-    public int GetSum(int a, int b)
-    {
-        return a + b;
-    }
-    
+    public int GetSum(int a, int b) => a + b;
     [EnableProxyLogging]
-    public int GetSum(int a, int b, int c)
-    {
-        return a + b + c;
-    }
+    public int GetSum(int a, int b, int c) => a + b + c;
 }
+
+
+[AttributeUsage(AttributeTargets.Method)]
+public class EnableProxyLoggingAttribute : AopAttibute { }
