@@ -11,21 +11,26 @@ public class LoggingProxy<T> : DispatchProxy where T : class
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
-        if (targetMethod == null) return null;
-        if (HasProxyLoggingEnabled(targetMethod))
-            Logger?.LogInformation("Start method {MethodInfo}, arguments: {Arguments}", targetMethod.Name, string.Join(',', args));
-        
-        var result = targetMethod?.Invoke(Target, args);
+        if (targetMethod == null || Target == null) return null;
 
-        if (HasProxyLoggingEnabled(targetMethod))
+        var implementedTargetMethod = Target.GetType().GetMethod(targetMethod.Name);
+        if (implementedTargetMethod == null) return null;
+
+        if (HasProxyLoggingEnabled(implementedTargetMethod))
+            Logger?.LogInformation("Start method {MethodInfo}, arguments: {Arguments}", targetMethod.Name, string.Join(',', args ?? []));
+
+        var result = targetMethod.Invoke(Target, args);
+
+        if (HasProxyLoggingEnabled(implementedTargetMethod))
             Logger?.LogInformation("End method {MethodInfo}, result: {Result}", targetMethod.Name, result);
+
         return result;
     }
 
     private static bool HasProxyLoggingEnabled(MethodInfo targetMethod)
     {
-        return true;
-        //return targetMethod.CustomAttributes.Any(attribute => attribute.AttributeType == typeof(EnableProxyLoggingAttribute));
+        return targetMethod.CustomAttributes
+            .Any(attribute => attribute.AttributeType == typeof(EnableProxyLoggingAttribute));
     }
 
     public static T Decorate(T target, ILogger<T> logger)
