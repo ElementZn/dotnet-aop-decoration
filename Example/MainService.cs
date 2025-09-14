@@ -26,11 +26,11 @@ public class LoggingBehavior(ILogger<LoggingBehavior> logger) : IAopBehavior<Ena
 {
     public object? InvokeWrapped(MethodInvocationDetails invocationDetails)
     {
-        logger?.LogInformation("Start first method {MethodInfo}, arguments: {Arguments}", invocationDetails.Name, string.Join(',', invocationDetails.Args));
+        logger?.LogInformation("Start first method '{MethodInfo}', arguments: {Arguments}", invocationDetails.Name, string.Join(',', invocationDetails.Args));
 
         var result = invocationDetails.Next();
 
-        logger?.LogInformation("End first method {MethodInfo}, result: {Result}", invocationDetails.Name, result);
+        logger?.LogInformation("End first method '{MethodInfo}', result: {Result}", invocationDetails.Name, result);
 
         return result;
     }
@@ -39,15 +39,15 @@ public class LoggingBehavior(ILogger<LoggingBehavior> logger) : IAopBehavior<Ena
 
 public class EnableSecondProxyLoggingAttribute : AopAttibute { }
 
-public class SecondLoggingBehavior(ILogger<LoggingBehavior> logger) : IAopBehavior<EnableSecondProxyLoggingAttribute>
+public class SecondLoggingBehavior(ILogger<SecondLoggingBehavior> logger) : IAopBehavior<EnableSecondProxyLoggingAttribute>
 {
     public object? InvokeWrapped(MethodInvocationDetails invocationDetails)
     {
-        logger?.LogInformation("Start second method {MethodInfo}, arguments: {Arguments}", invocationDetails.Name, string.Join(',', invocationDetails.Args));
+        logger?.LogInformation("Start second method '{MethodInfo}', arguments: {Arguments}", invocationDetails.Name, string.Join(',', invocationDetails.Args));
 
         var result = invocationDetails.Next();
 
-        logger?.LogInformation("End second method {MethodInfo}, result: {Result}", invocationDetails.Name, result);
+        logger?.LogInformation("End second method '{MethodInfo}', result: {Result}", invocationDetails.Name, result);
 
         return result;
     }

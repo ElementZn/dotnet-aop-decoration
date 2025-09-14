@@ -5,26 +5,26 @@ namespace Workplace.Aop;
 
 public class AopProxy<T> : DispatchProxy where T : class
 {
-    private T? Target { get; set; }
-    private IEnumerable<IAopBehavior> Behaviors { get; set; } = [];
+    private T? target;
+    private IEnumerable<IAopBehavior> behaviors = [];
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
-        if (targetMethod == null || Target == null || !Behaviors.Any())
+        if (targetMethod == null || target == null || !behaviors.Any())
             throw new ArgumentNullException("Arguments could not be fulfilled"); // TODO: Add more verbose error handling
 
-        var implementedTargetMethod = GetImplementedMethod(targetMethod, Target);
+        var implementedTargetMethod = GetImplementedMethod(targetMethod, target);
         if (implementedTargetMethod == null) return null;
 
         var invocationDetails = new MethodInvocationDetails
         {
             Name = implementedTargetMethod.Name,
             Args = args ?? [],
-            Target = Target,
-            Next = () => implementedTargetMethod.Invoke(Target, args)
+            Target = target,
+            Next = () => implementedTargetMethod.Invoke(target, args)
         };
 
-        foreach (var behavior in Behaviors)
+        foreach (var behavior in behaviors)
         {
             var behaviorInterface = behavior.GetType().GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAopBehavior<>));
             var aopAttributeType = behaviorInterface.GetGenericArguments()[0];
@@ -57,8 +57,8 @@ public class AopProxy<T> : DispatchProxy where T : class
 
         if (decorated is AopProxy<T> proxy)
         {
-            proxy.Target = target;
-            proxy.Behaviors = behaviors;
+            proxy.target = target;
+            proxy.behaviors = behaviors;
         }
 
         return decorated;
