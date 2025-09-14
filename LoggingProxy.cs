@@ -59,8 +59,10 @@ public class LoggingProxy<T> : DispatchProxy where T : class
     }
 }
 
+public abstract class AopAttibute : Attribute { }
+
 [AttributeUsage(AttributeTargets.Method)]
-public class EnableProxyLoggingAttribute : Attribute { }
+public class EnableProxyLoggingAttribute : AopAttibute { }
 
 public static class LoggingProxyExtensions
 {
@@ -80,12 +82,17 @@ public static class LoggingProxyExtensions
 
     public static IServiceCollection AddLoggingDecoration(this IServiceCollection services)
     {
+        var aopAttributeTypes = Assembly.GetExecutingAssembly().GetTypes()
+            .Where(x => !x.IsAbstract && typeof(AopAttibute).IsAssignableFrom(x))
+            .ToList();
+
         var loggableRegistrations = services
             .Where(registration =>
                 registration.ImplementationType != null &&
                 registration.ImplementationType.GetMethods()
                     .Any(methodInfo => methodInfo.CustomAttributes
-                        .Any(attribute => attribute.AttributeType == typeof(EnableProxyLoggingAttribute))))
+                        .IntersectBy(aopAttributeTypes, attribute => attribute.AttributeType)
+                        .Any()))
             .ToList();
 
         foreach (var registration in loggableRegistrations)
