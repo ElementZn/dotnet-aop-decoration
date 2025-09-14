@@ -7,7 +7,7 @@ namespace Workplace;
 public class LoggingProxy<T> : DispatchProxy where T : class
 {
     public T? Target { get; private set; }
-    public ILogger<T>? Logger { get; private set; }
+    public ILogger<LoggingProxy<T>>? Logger { get; private set; }
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
@@ -45,7 +45,7 @@ public class LoggingProxy<T> : DispatchProxy where T : class
             .Any(attribute => attribute.AttributeType == typeof(EnableProxyLoggingAttribute));
     }
 
-    public static T Decorate(T target, ILogger<T> logger)
+    public static T Decorate(T target, ILogger<LoggingProxy<T>> logger)
     {
         var decorated = Create<T, LoggingProxy<T>>();
 
@@ -72,9 +72,42 @@ public static class LoggingProxyExtensions
         services.AddScoped(services =>
         {
             var target = services.GetRequiredService<TImplementation>();
-            var logger = services.GetRequiredService<ILogger<TImplementation>>();
+            var logger = services.GetRequiredService<ILogger<LoggingProxy<TService>>>();
             return LoggingProxy<TService>.Decorate(target, logger);
         });
+        return services;
+    }
+
+    public static IServiceCollection AddLoggingDecoration(this IServiceCollection services)
+    {
+        var loggableRegistrations = services
+            .Where(registration =>
+                registration.ImplementationType != null &&
+                registration.ImplementationType.GetMethods()
+                    .Any(methodInfo => methodInfo.CustomAttributes
+                        .Any(attribute => attribute.AttributeType == typeof(EnableProxyLoggingAttribute))))
+            .ToList();
+
+        foreach (var registration in loggableRegistrations)
+        {
+            if (registration.ImplementationType == null) continue;
+            services.Remove(registration);
+            services.Add(new ServiceDescriptor(registration.ImplementationType, registration.ImplementationType, registration.Lifetime));
+            services.Add(new ServiceDescriptor(registration.ServiceType, (services) =>
+            {
+                var target = services.GetRequiredService(registration.ImplementationType);
+
+                var proxyType = typeof(LoggingProxy<>).MakeGenericType(registration.ServiceType);
+
+                var loggerType = typeof(ILogger<>).MakeGenericType(proxyType);
+                var logger = services.GetRequiredService(loggerType);
+
+                var factoryMethod = proxyType.GetMethod("Decorate");
+                return factoryMethod?.Invoke(null, [target, logger])
+                    ?? throw new InvalidOperationException($"Could not instantiate object for type {proxyType}");
+            }, registration.Lifetime));
+        }
+
         return services;
     }
 }

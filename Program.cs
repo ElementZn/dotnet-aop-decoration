@@ -14,8 +14,10 @@ public static class Program
         builder.Logging.AddDebug();
 
         var services = builder.Services;
-        services.AddDecoratedScoped<IMainService, MainService>();
+        services.AddScoped<IMainService, MainService>();
         services.AddScoped<Runner>();
+
+        services.AddLoggingDecoration();
 
         var host = builder.Build();
 

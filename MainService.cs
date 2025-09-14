@@ -10,11 +10,13 @@ public interface IMainService
 
 public class MainService : IMainService
 {
+    [EnableProxyLogging]
     public int GetIncrement(int a)
     {
         return a + 1;
     }
 
+    [EnableProxyLogging]
     public int GetSum(int a, int b)
     {
         return a + b;
