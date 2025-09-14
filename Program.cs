@@ -11,7 +11,7 @@ public static class Program
         var builder = Host.CreateApplicationBuilder(args);
 
         builder.Logging.ClearProviders();
-        builder.Logging.AddConsole();
+        builder.Logging.AddDebug();
 
         var services = builder.Services;
         services.AddDecoratedScoped<IMainService, MainService>();
