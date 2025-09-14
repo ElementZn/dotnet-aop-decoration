@@ -34,9 +34,7 @@ public class LoggingProxy<T> : DispatchProxy where T : class
         for (int i = 0; i < interfaceMap.InterfaceMethods.Length; i++)
         {
             if (interfaceMap.InterfaceMethods[i] == interfaceMethod)
-            {
                 return interfaceMap.TargetMethods[i];
-            }
         }
         throw new InvalidOperationException($"No implementation for the specific method '{interfaceMethod.Name}'");
     }
