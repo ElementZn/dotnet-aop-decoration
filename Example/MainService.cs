@@ -1,7 +1,5 @@
-
-
-using System.Reflection;
 using Microsoft.Extensions.Logging;
+using Workplace.Aop.Contracts;
 
 namespace Workplace.Example;
 
