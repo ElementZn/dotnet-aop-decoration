@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Workplace;
 
@@ -9,8 +10,11 @@ public static class Program
     {
         var builder = Host.CreateApplicationBuilder(args);
 
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole();
+
         var services = builder.Services;
-        services.AddScoped<IMainService, MainService>();
+        services.AddDecoratedScoped<IMainService, MainService>();
         services.AddScoped<Runner>();
 
         var host = builder.Build();

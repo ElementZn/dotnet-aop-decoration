@@ -15,6 +15,7 @@ public class MainService : IMainService
         return a + 1;
     }
 
+    [EnableProxyLogging]
     public int GetSum(int a, int b)
     {
         return a + b;

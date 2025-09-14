@@ -1,28 +1,63 @@
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Workplace;
 
 public class LoggingProxy<T> : DispatchProxy where T : class
 {
-    public T Target { get; private set; }
+    public T? Target { get; private set; }
+    public ILogger<T>? Logger { get; private set; }
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
-        Console.WriteLine("Start method {MethodInfo}, arguments: {Arguments}", targetMethod.Name, string.Join(',', args));
+        if (targetMethod == null) return null;
+        if (HasProxyLoggingEnabled(targetMethod))
+            Logger?.LogInformation("Start method {MethodInfo}, arguments: {Arguments}", targetMethod.Name, string.Join(',', args));
+        
         var result = targetMethod?.Invoke(Target, args);
-        Console.WriteLine("End method {MethodInfo}, result: {Result}", targetMethod.Name, result);
+
+        if (HasProxyLoggingEnabled(targetMethod))
+            Logger?.LogInformation("End method {MethodInfo}, result: {Result}", targetMethod.Name, result);
         return result;
     }
 
-    public static T Decorate(T target)
+    private static bool HasProxyLoggingEnabled(MethodInfo targetMethod)
+    {
+        return true;
+        //return targetMethod.CustomAttributes.Any(attribute => attribute.AttributeType == typeof(EnableProxyLoggingAttribute));
+    }
+
+    public static T Decorate(T target, ILogger<T> logger)
     {
         var decorated = Create<T, LoggingProxy<T>>();
 
         if (decorated is LoggingProxy<T> proxy)
         {
             proxy.Target = target;
+            proxy.Logger = logger;
         }
 
-        return decorated as T;
+        return decorated;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public class EnableProxyLoggingAttribute : Attribute { }
+
+public static class LoggingProxyExtensions
+{
+    public static IServiceCollection AddDecoratedScoped<TService, TImplementation>(this IServiceCollection services)
+            where TService : class
+            where TImplementation : class, TService
+    {
+        services.AddScoped<TImplementation>();
+        services.AddScoped(services =>
+        {
+            var target = services.GetRequiredService<TImplementation>();
+            var logger = services.GetRequiredService<ILogger<TImplementation>>();
+            return LoggingProxy<TService>.Decorate(target, logger);
+        });
+        return services;
     }
 }
