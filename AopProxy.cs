@@ -1,13 +1,14 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Workplace.Example;
 
 namespace Workplace;
 
-public class LoggingProxy<T> : DispatchProxy where T : class
+public class AopProxy<T> : DispatchProxy where T : class
 {
     public T? Target { get; private set; }
-    public ILogger<LoggingProxy<T>>? Logger { get; private set; }
+    public ILogger<AopProxy<T>>? Logger { get; private set; }
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
@@ -45,11 +46,11 @@ public class LoggingProxy<T> : DispatchProxy where T : class
             .Any(attribute => attribute.AttributeType == typeof(EnableProxyLoggingAttribute));
     }
 
-    public static T Decorate(T target, ILogger<LoggingProxy<T>> logger)
+    public static T Decorate(T target, ILogger<AopProxy<T>> logger)
     {
-        var decorated = Create<T, LoggingProxy<T>>();
+        var decorated = Create<T, AopProxy<T>>();
 
-        if (decorated is LoggingProxy<T> proxy)
+        if (decorated is AopProxy<T> proxy)
         {
             proxy.Target = target;
             proxy.Logger = logger;
@@ -71,8 +72,8 @@ public static class LoggingProxyExtensions
         services.AddScoped(services =>
         {
             var target = services.GetRequiredService<TImplementation>();
-            var logger = services.GetRequiredService<ILogger<LoggingProxy<TService>>>();
-            return LoggingProxy<TService>.Decorate(target, logger);
+            var logger = services.GetRequiredService<ILogger<AopProxy<TService>>>();
+            return AopProxy<TService>.Decorate(target, logger);
         });
         return services;
     }
@@ -101,7 +102,7 @@ public static class LoggingProxyExtensions
             {
                 var target = services.GetRequiredService(registration.ImplementationType);
 
-                var proxyType = typeof(LoggingProxy<>).MakeGenericType(registration.ServiceType);
+                var proxyType = typeof(AopProxy<>).MakeGenericType(registration.ServiceType);
 
                 var loggerType = typeof(ILogger<>).MakeGenericType(proxyType);
                 var logger = services.GetRequiredService(loggerType);

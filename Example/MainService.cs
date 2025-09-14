@@ -1,5 +1,5 @@
 
-namespace Workplace;
+namespace Workplace.Example;
 
 public interface IMainService
 {
@@ -12,12 +12,11 @@ public class MainService : IMainService
 {
     [EnableProxyLogging]
     public int GetIncrement(int a) => a + 1;
-    [EnableProxyLogging]
+    // [EnableProxyLogging]
     public int GetSum(int a, int b) => a + b;
     [EnableProxyLogging]
     public int GetSum(int a, int b, int c) => a + b + c;
 }
-
 
 [AttributeUsage(AttributeTargets.Method)]
 public class EnableProxyLoggingAttribute : AopAttibute { }

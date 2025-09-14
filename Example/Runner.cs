@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace Workplace;
+namespace Workplace.Example;
 
 public class Runner(IMainService mainService, ILogger<Runner> logger)
 {
