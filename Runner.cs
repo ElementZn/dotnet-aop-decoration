@@ -4,7 +4,6 @@ namespace Workplace;
 
 public class Runner(IMainService mainService, ILogger<Runner> logger)
 {
-
     public void Run()
     {
         logger.LogInformation("Start RUN");

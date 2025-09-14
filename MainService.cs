@@ -7,7 +7,6 @@ public interface IMainService
     public int GetIncrement(int a);
 }
 
-
 public class MainService : IMainService
 {
     public int GetIncrement(int a)
