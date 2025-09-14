@@ -16,9 +16,8 @@ public class MainService : IMainService
 {
     [EnableProxyLogging]
     public int GetIncrement(int a) => a + 1;
-    [EnableSecondProxyLogging]
-    [EnableProxyLogging]
     public int GetSum(int a, int b) => a + b;
+    [EnableSecondProxyLogging]
     [EnableProxyLogging]
     public int GetSum(int a, int b, int c) => a + b + c;
 }

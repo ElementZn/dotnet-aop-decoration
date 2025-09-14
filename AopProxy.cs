@@ -5,8 +5,8 @@ namespace Workplace;
 
 public class AopProxy<T> : DispatchProxy where T : class
 {
-    public T? Target { get; private set; }
-    public IEnumerable<IAopBehavior> Behaviors { get; private set; } = [];
+    private T? Target { get; set; }
+    private IEnumerable<IAopBehavior> Behaviors { get; set; } = [];
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
