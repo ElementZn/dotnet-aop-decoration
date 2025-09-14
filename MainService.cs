@@ -1,4 +1,5 @@
 
+namespace Workplace;
 
 public interface IMainService
 {

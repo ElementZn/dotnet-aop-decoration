@@ -1,9 +1,11 @@
 using System.Reflection;
 
-public class LoggingProxy<T> : DispatchProxy where T: class
+namespace Workplace;
+
+public class LoggingProxy<T> : DispatchProxy where T : class
 {
-    public T Target {get; private set;}
-    
+    public T Target { get; private set; }
+
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
         Console.WriteLine("Start method {MethodInfo}, arguments: {Arguments}", targetMethod.Name, string.Join(',', args));
@@ -12,7 +14,7 @@ public class LoggingProxy<T> : DispatchProxy where T: class
         return result;
     }
 
-    public static T Decorate(T target) 
+    public static T Decorate(T target)
     {
         var decorated = Create<T, LoggingProxy<T>>();
 

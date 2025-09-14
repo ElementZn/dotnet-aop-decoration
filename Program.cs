@@ -7,12 +7,16 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        var host = Host.CreateApplicationBuilder(args);
+        var builder = Host.CreateApplicationBuilder(args);
 
-        var services = host.Services;
-        services.AddHostedService<Runner>();
+        var services = builder.Services;
         services.AddScoped<IMainService, MainService>();
+        services.AddScoped<Runner>();
 
-        host.Build().Run();
+        var host = builder.Build();
+
+        var runner = host.Services.GetRequiredService<Runner>();
+
+        runner.Run();
     }
 }
