@@ -21,22 +21,7 @@ public static class AopProxyExtensions
         {
             if (registration.ImplementationType == null) continue;
 
-            var serviceAopAttributeTypes = registration.ImplementationType.GetMethods()
-                .SelectMany(x => x.CustomAttributes)
-                .Select(x => x.AttributeType)
-                .Intersect(aopAttributeTypes)
-                .Distinct()
-                .ToList();
-            if (serviceAopAttributeTypes.Count == 0) continue;
-
-            var serviceAopBehaviorInterfaces = serviceAopAttributeTypes
-                .Select(x => typeof(IAopBehavior<>).MakeGenericType(x))
-                .ToList();
-
-            var serviceBehaviorTypes = aopBehaviorTypes
-                .IntersectBy(serviceAopBehaviorInterfaces,
-                    x => x.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAopBehavior<>)))
-                .ToList();
+            var serviceBehaviorTypes = GetServiceBehaviorTypes(aopAttributeTypes, aopBehaviorTypes, registration.ImplementationType);
             if (serviceBehaviorTypes.Count == 0) continue;
 
             services.Remove(registration);
@@ -57,5 +42,27 @@ public static class AopProxyExtensions
         }
 
         return services;
+    }
+
+    private static List<Type> GetServiceBehaviorTypes(List<Type> aopAttributeTypes, List<Type> aopBehaviorTypes, Type implementationType)
+    {
+        var serviceAopAttributeTypes = implementationType.GetMethods()
+            .SelectMany(x => x.CustomAttributes)
+            .Select(x => x.AttributeType)
+            .Intersect(aopAttributeTypes)
+            .Distinct()
+            .ToList();
+        if (serviceAopAttributeTypes.Count == 0)
+            return [];
+
+        var serviceAopBehaviorInterfaces = serviceAopAttributeTypes
+            .Select(x => typeof(IAopBehavior<>).MakeGenericType(x))
+            .ToList();
+
+        var serviceBehaviorTypes = aopBehaviorTypes
+            .IntersectBy(serviceAopBehaviorInterfaces,
+                x => x.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAopBehavior<>)))
+            .ToList();
+        return serviceBehaviorTypes;
     }
 }
