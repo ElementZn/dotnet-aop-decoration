@@ -31,8 +31,8 @@ public class AopProxy<T> : DispatchProxy where T : class
             if (!implementedTargetMethod.CustomAttributes.Any(x => x.AttributeType == aopAttributeType))
                 continue;
 
-            var previousInvocation = invocationDetails;
-            invocationDetails = invocationDetails with { Next = () => behavior.InvokeWrapped(previousInvocation) };
+            var previousInvocationDetails = invocationDetails;
+            invocationDetails = invocationDetails with { Next = () => behavior.InvokeWrapped(previousInvocationDetails) };
         }
         var result = invocationDetails.Next();
 
