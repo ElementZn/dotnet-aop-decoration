@@ -1,7 +1,8 @@
-﻿using System.Diagnostics;
-using MediatR;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Workplace.Aop;
+using Workplace.Example;
 
 namespace Workplace;
 
@@ -9,17 +10,24 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        var host = CreateHostBuilder(args).Build();
+        var builder = Host.CreateApplicationBuilder(args);
 
-        var mediator = host.Services.GetRequiredService<IMediator>();
-        mediator.Send(new GetCommand<int>());
+        builder.Logging.ClearProviders();
+        builder.Logging.AddDebug();
+
+        var services = builder.Services;
+        services.AddScoped<IMainService, MainService>();
+        services.AddScoped<Runner>();
+
+        services.AddScoped<LoggingBehavior>();
+        services.AddScoped<SecondLoggingBehavior>();
+
+        services.AddAopDecoration();
+
+        var host = builder.Build();
+
+        var runner = host.Services.GetRequiredService<Runner>();
+
+        runner.Run();
     }
-
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureServices((_, services) =>
-            {
-                services.AddTransient<IMediator, Mediator>();
-                services.AddTransient<IRequestHandler<GetCommand<int>, Unit>, GetCommandHandler<int>>();
-            });
 }
