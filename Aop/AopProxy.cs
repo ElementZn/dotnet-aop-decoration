@@ -5,20 +5,20 @@ namespace Workplace.Aop;
 
 public class AopProxy<T> : DispatchProxy where T : class
 {
-    private T? target;
+    private T target = null!; // initialized in factory method
     private IEnumerable<IAopBehavior> behaviors = [];
 
     public static T Create(T target, ICollection<IAopBehavior> behaviors)
     {
-        ArgumentNullException.ThrowIfNull(target);
-        if (behaviors.Count == 0)
-            throw new ArgumentException("No registered behaviors", nameof(behaviors));
-
         var decorated = Create<T, AopProxy<T>>();
         if (decorated is not AopProxy<T> proxy)
             throw new InvalidOperationException("Can't create proxy type");
 
+        ArgumentNullException.ThrowIfNull(target);
         proxy.target = target;
+
+        if (behaviors.Count == 0)
+            throw new ArgumentException("No registered behaviors", nameof(behaviors));
         proxy.behaviors = behaviors;
 
         return decorated;
@@ -27,12 +27,8 @@ public class AopProxy<T> : DispatchProxy where T : class
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
         ArgumentNullException.ThrowIfNull(targetMethod);
-        if (target == null)
-            throw new InvalidOperationException("Invalid target");
-        if (!behaviors.Any())
-            throw new InvalidOperationException("No registered behaviors");
 
-        var implementedTargetMethod = GetImplementedMethod(targetMethod, target)
+        var implementedTargetMethod = GetImplementedMethod(targetMethod)
             ?? throw new ArgumentException("No corresponding implemented method", nameof(targetMethod));
 
         var invocationDetails = new MethodInvocationDetails
@@ -58,7 +54,7 @@ public class AopProxy<T> : DispatchProxy where T : class
         return result;
     }
 
-    private static MethodInfo GetImplementedMethod(MethodInfo interfaceMethod, T target)
+    private MethodInfo GetImplementedMethod(MethodInfo interfaceMethod)
     {
         var targetInterface = interfaceMethod.DeclaringType!;
         var interfaceMap = target.GetType().GetInterfaceMap(targetInterface);
