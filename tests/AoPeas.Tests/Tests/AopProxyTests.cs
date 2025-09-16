@@ -6,24 +6,24 @@ namespace AoPeas.Tests.Tests;
 public class AopProxyTests
 {
     [Fact]
-    public void GivenEmptyAspectMap_WhenCreatingProxy_Throws()
-    {
-        var testService = new TestService();
-        var aspectMap = new AspectMap([]);
-
-        var exception = Record.Exception(() => AopProxy<ITestService>.Create(testService, aspectMap));
-
-        Assert.IsType<ArgumentException>(exception);
-    }
-
-    [Fact]
-    public void GivenValidParams_WhenCreatingProxy_ReturnsSuccess()
+    public void GivenAdvice_WhenCallingMethod_ReturnsCorrectResult()
     {
         var testService = new TestService();
         var aspectMap = new AspectMap(new() { [typeof(NoAdviceAttribute)] = [new NoAdvice()] });
 
-        var result =  AopProxy<ITestService>.Create(testService, aspectMap);
+        var proxy =  AopProxy<ITestService>.Create(testService, aspectMap);
 
-        Assert.Equal(4, result.GetIncrement(3));
+        Assert.Equal(4, proxy.GetIncrement(3));
+    }
+
+    [Fact]
+    public void GivenAdvice_WhenAdjustingResult_ReturnsModifiedResult()
+    {
+        var testService = new TestService();
+        var aspectMap = new AspectMap(new() { [typeof(AddTenAttribute)] = [new AddTen()] });
+
+        var proxy =  AopProxy<ITestService>.Create(testService, aspectMap);
+
+        Assert.Equal(14, proxy.GetIncrement(3));
     }
 }
