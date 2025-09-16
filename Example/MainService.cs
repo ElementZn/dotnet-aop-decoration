@@ -24,9 +24,12 @@ public class EnableProxyLoggingAttribute : AopAttibute { }
 
 public class LoggingBehavior(ILogger<LoggingBehavior> logger) : IAopBehavior<EnableProxyLoggingAttribute>
 {
+    private int count = 0;
+
     public object? InvokeWrapped(MethodInvocationDetails invocationDetails)
     {
-        logger.LogInformation("Start method '{MethodInfo}', arguments: {Arguments}", invocationDetails.Name, string.Join(',', invocationDetails.Args));
+        count++;
+        logger.LogInformation("Start method '{MethodInfo}', arguments: {Arguments}, count: {count}", invocationDetails.Name, string.Join(',', invocationDetails.Args), count);
 
         var result = invocationDetails.Next();
 

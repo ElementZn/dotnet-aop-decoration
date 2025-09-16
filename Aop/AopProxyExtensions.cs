@@ -1,5 +1,4 @@
 using System.Data;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Workplace.Aop.Contracts;
 
@@ -7,36 +6,27 @@ namespace Workplace.Aop;
 
 public static class AopProxyExtensions
 {
-    public static IServiceCollection AddAopDecoration(this IServiceCollection services, Action<AopProxyOptions> configureAction)
+    public static IServiceCollection AddAopDecoration(this IServiceCollection services)
     {
-        var aopOptions = new AopProxyOptions();
-        configureAction(aopOptions);
-
-        var aopBehaviorTypes = aopOptions.GetBehaviorTypes();
-        if (aopBehaviorTypes.Count == 0) return services;
-
-        var aopAttributeTypes = Assembly.GetExecutingAssembly().GetTypes()
-            .Where(x => !x.IsAbstract && typeof(AopAttibute).IsAssignableFrom(x))
-            .ToList();
-        if (aopAttributeTypes.Count == 0) return services;
+        var aopOptions = new AopProxyOptions(services);
+        aopOptions.BuildAttributeMapping();
 
         var registrations = services.ToList();
         foreach (var registration in registrations)
         {
-            if (registration.ImplementationType == null) continue;
+            if (registration.ImplementationType == null || registration.ServiceType == registration.ImplementationType) continue;
 
-            var serviceBehaviorTypes = GetServiceBehaviorTypes(aopAttributeTypes, aopBehaviorTypes, registration.ImplementationType);
+            var serviceBehaviorTypes = aopOptions.GetBehaviorTypes(registration.ImplementationType);
             if (serviceBehaviorTypes.Count == 0) continue;
 
             services.Remove(registration);
             services.Add(new ServiceDescriptor(registration.ImplementationType, registration.ImplementationType, registration.Lifetime));
             services.Add(new ServiceDescriptor(registration.ServiceType, services =>
             {
-                var target = services.GetRequiredService(registration.ImplementationType);
-
                 var proxyType = typeof(AopProxy<>).MakeGenericType(registration.ServiceType);
                 var factoryMethod = proxyType.GetMethod(nameof(AopProxy<object>.Decorate));
 
+                var target = services.GetRequiredService(registration.ImplementationType);
                 var serviceBehaviors = serviceBehaviorTypes
                     .Select(x => services.GetService(x) as IAopBehavior)
                     .ToList();
@@ -46,42 +36,46 @@ public static class AopProxyExtensions
         }
         return services;
     }
+}
 
-    private static List<Type> GetServiceBehaviorTypes(
-        IReadOnlyCollection<Type> aopAttributeTypes, 
-        IReadOnlyCollection<Type> aopBehaviorTypes, 
-        Type implementationType)
+public class AopProxyOptions(IServiceCollection services)
+{
+    private readonly Dictionary<Type, HashSet<Type>> behaviorMappings = [];
+
+    internal void BuildAttributeMapping()
+    {
+        var behaviorTypes = services
+            .Select(x => x.ServiceType)
+            .Where(x => !x.IsAbstract && typeof(IAopBehavior).IsAssignableFrom(x))
+            .ToHashSet();
+        foreach (var behaviorType in behaviorTypes)
+        {
+            var attributeTypes = behaviorType.GetInterfaces()
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IAopBehavior<>)).Distinct()
+                .Select(x => x.GetGenericArguments()[0]);
+            foreach (var attributeType in attributeTypes)
+            {
+                if (!behaviorMappings.ContainsKey(attributeType))
+                    behaviorMappings.Add(attributeType, []);
+                behaviorMappings[attributeType].Add(behaviorType);
+            }
+        }
+    }
+
+    internal ICollection<Type> GetBehaviorTypes(Type implementationType)
     {
         var serviceAopAttributeTypes = implementationType.GetMethods()
             .SelectMany(x => x.CustomAttributes)
             .Select(x => x.AttributeType)
-            .Intersect(aopAttributeTypes)
-            .Distinct()
-            .ToList();
-        if (serviceAopAttributeTypes.Count == 0)
-            return [];
+            .Where(x => typeof(AopAttibute).IsAssignableFrom(x))
+            .ToHashSet();
 
-        var serviceAopBehaviorInterfaces = serviceAopAttributeTypes
-            .Select(x => typeof(IAopBehavior<>).MakeGenericType(x))
-            .ToList();
-
-        var serviceBehaviorTypes = aopBehaviorTypes
-            .IntersectBy(serviceAopBehaviorInterfaces,
-                x => x.GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAopBehavior<>)))
-            .ToList();
-        return serviceBehaviorTypes;
+        HashSet<Type> results = [];
+        foreach (var attributeType in serviceAopAttributeTypes)
+        {
+            var values = behaviorMappings.GetValueOrDefault(attributeType, []);
+            results.UnionWith(values);
+        }
+        return results;
     }
-}
-
-public class AopProxyOptions()
-{
-    private readonly HashSet<Type> _behaviorTypes = [];
-
-    public AopProxyOptions AddBehavior<T>() where T : IAopBehavior
-    {
-        _behaviorTypes.Add(typeof(T));
-        return this;
-    }
-
-    public IReadOnlyCollection<Type> GetBehaviorTypes() => [.. _behaviorTypes];
 }

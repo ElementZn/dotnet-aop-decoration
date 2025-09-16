@@ -22,11 +22,7 @@ public static class Program
         services.AddScoped<LoggingBehavior>();
         services.AddScoped<SecondLoggingBehavior>();
 
-        services.AddAopDecoration(options =>
-        {
-            options.AddBehavior<LoggingBehavior>();
-            options.AddBehavior<SecondLoggingBehavior>();
-        });
+        services.AddAopDecoration();
 
         var host = builder.Build();
 
