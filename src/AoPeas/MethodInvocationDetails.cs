@@ -1,4 +1,4 @@
-namespace Workplace.Aop.Contracts;
+namespace AoPeas;
 
 /// <summary>
 /// Details for the invoked method

@@ -1,6 +1,4 @@
-using Workplace.Aop.Contracts;
-
-namespace Workplace.Aop;
+namespace AoPeas.Internal;
 
 /// <summary>
 /// Aspect map for advice retrieval based on pointcut attribute type
@@ -14,4 +12,9 @@ public class AspectMap(Dictionary<Type, HashSet<IAdvice>> aspectMap)
     /// <param name="pointcutType"></param>
     /// <returns></returns>
     public HashSet<IAdvice> GetAdvices(Type pointcutType) => aspectMap.GetValueOrDefault(pointcutType, []);
+    /// <summary>
+    /// Check if the aspect map contains registered advices
+    /// </summary>
+    /// <returns></returns>
+    public bool IsEmpty() => aspectMap.Values.Count == 0;
 }
