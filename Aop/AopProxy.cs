@@ -6,9 +6,9 @@ namespace Workplace.Aop;
 public class AopProxy<T> : DispatchProxy where T : class
 {
     private T target = null!; // initialized in factory method
-    private IEnumerable<IAopBehavior> behaviors = [];
+    private Dictionary<Type, HashSet<IAopBehavior>> behaviorMap = [];
 
-    public static T Create(T target, ICollection<IAopBehavior> behaviors)
+    public static T Create(T target, Dictionary<Type, HashSet<IAopBehavior>> behaviorMap)
     {
         var decorated = Create<T, AopProxy<T>>();
         if (decorated is not AopProxy<T> proxy)
@@ -17,9 +17,9 @@ public class AopProxy<T> : DispatchProxy where T : class
         ArgumentNullException.ThrowIfNull(target);
         proxy.target = target;
 
-        if (behaviors.Count == 0)
-            throw new ArgumentException("No registered behaviors", nameof(behaviors));
-        proxy.behaviors = behaviors;
+        if (behaviorMap.Count == 0)
+            throw new ArgumentException("No registered behaviors", nameof(behaviorMap));
+        proxy.behaviorMap = behaviorMap;
 
         return decorated;
     }
@@ -39,15 +39,15 @@ public class AopProxy<T> : DispatchProxy where T : class
             Next = () => implementedTargetMethod.Invoke(target, args)
         };
 
-        foreach (var behavior in behaviors)
+        var aopAttributeTypes = implementedTargetMethod.GetAopAttributeTypes().Reverse();
+        foreach (var aopAttributeType in aopAttributeTypes)
         {
-            var behaviorInterface = behavior.GetType().GetInterfaces().First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAopBehavior<>));
-            var aopAttributeType = behaviorInterface.GetGenericArguments()[0];
-            if (!implementedTargetMethod.CustomAttributes.Any(x => x.AttributeType == aopAttributeType))
-                continue;
-
-            var previousInvocationDetails = invocationDetails;
-            invocationDetails = invocationDetails with { Next = () => behavior.InvokeWrapped(previousInvocationDetails) };
+            var behaviors = behaviorMap.GetValueOrDefault(aopAttributeType, []);
+            foreach (var behavior in behaviors)
+            {
+                var previousInvocationDetails = invocationDetails;
+                invocationDetails = invocationDetails with { Next = () => behavior.InvokeWrapped(previousInvocationDetails) };
+            }
         }
         var result = invocationDetails.Next();
 

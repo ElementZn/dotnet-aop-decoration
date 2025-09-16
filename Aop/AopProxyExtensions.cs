@@ -1,5 +1,3 @@
-using System.Data;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Workplace.Aop.Contracts;
 
@@ -17,39 +15,35 @@ public static class AopProxyExtensions
         {
             if (registration.ImplementationType == null || registration.ServiceType == registration.ImplementationType) continue;
 
-            var serviceBehaviorTypes = aopBehaviorMap.GetBehaviorTypes(registration.ImplementationType);
-            if (serviceBehaviorTypes.Count == 0) continue;
+            var aopTypesWithBehavior = aopBehaviorMap.GetRegisteredAttributeTypes(registration.ImplementationType);
+            if (aopTypesWithBehavior.Count == 0) continue;
 
             services.Remove(registration);
             services.Add(new ServiceDescriptor(registration.ImplementationType, registration.ImplementationType, registration.Lifetime));
-            services.Add(new ServiceDescriptor(registration.ServiceType, services =>
+            services.Add(new ServiceDescriptor(registration.ServiceType, sp =>
             {
-                var target = services.GetRequiredService(registration.ImplementationType);
-                var serviceBehaviors = serviceBehaviorTypes
-                    .Select(x => services.GetService(x))
-                    .OfType<IAopBehavior>()
-                    .ToList();
+                var target = sp.GetRequiredService(registration.ImplementationType);
+                var serviceBehaviors = aopBehaviorMap.GetBehaviorMap(aopTypesWithBehavior, sp);
                 return CreateAopProxy(registration.ServiceType, target, serviceBehaviors);
             }, registration.Lifetime));
         }
         return services;
     }
 
-    private static object CreateAopProxy(Type serviceType, object target, List<IAopBehavior> behaviors)
+    private static object CreateAopProxy(Type serviceType, object target, Dictionary<Type, HashSet<IAopBehavior>> behaviors)
     {
         var proxyType = typeof(AopProxy<>).MakeGenericType(serviceType);
         var factoryMethod = proxyType.GetMethod(nameof(AopProxy<object>.Create))!;
         return factoryMethod.Invoke(null, [target, behaviors])
             ?? throw new InvalidOperationException($"Could not instantiate AoP proxy for type {serviceType}");
-
     }
 }
 
-public class AopBehaviorMap()
+public class AopBehaviorMap
 {
     private readonly Dictionary<Type, HashSet<Type>> behaviorMappings = [];
 
-    internal void BuildAttributeMapping(IServiceCollection services)
+    public void BuildAttributeMapping(IServiceCollection services)
     {
         var behaviorTypes = services
             .Select(x => x.ServiceType)
@@ -70,18 +64,35 @@ public class AopBehaviorMap()
         }
     }
 
-    internal ICollection<Type> GetBehaviorTypes(Type implementationType)
+    public HashSet<Type> GetRegisteredAttributeTypes(Type implementationType)
     {
         var serviceAopAttributeTypes = implementationType.GetMethods()
             .SelectMany(MehtodInvocationExtenstions.GetAopAttributeTypes)
             .ToHashSet();
 
-        HashSet<Type> results = [];
-        foreach (var attributeType in serviceAopAttributeTypes)
+        return serviceAopAttributeTypes
+            .Where(behaviorMappings.ContainsKey)
+            .ToHashSet();
+    }
+
+    public Dictionary<Type, HashSet<IAopBehavior>> GetBehaviorMap(HashSet<Type> aopAttributeTypes, IServiceProvider serviceProvider)
+    {
+        Dictionary<Type, IAopBehavior> behaviors = [];
+        Dictionary<Type, HashSet<IAopBehavior>> result = [];
+        foreach (var aopAttributeType in aopAttributeTypes)
         {
-            var values = behaviorMappings.GetValueOrDefault(attributeType, []);
-            results.UnionWith(values);
+            result[aopAttributeType] = [];
+            var behaviorTypes = behaviorMappings.GetValueOrDefault(aopAttributeType, []);
+            foreach (var behaviorType in behaviorTypes)
+            {
+                if (!behaviors.TryGetValue(behaviorType, out var behavior))
+                {
+                    behavior = (IAopBehavior)serviceProvider.GetRequiredService(behaviorType);
+                    behaviors.Add(behaviorType, behavior);
+                }
+                result[aopAttributeType].Add(behavior);
+            }
         }
-        return results;
+        return result;
     }
 }
