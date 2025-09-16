@@ -26,11 +26,11 @@ public class LoggingBehavior(ILogger<LoggingBehavior> logger) : IAopBehavior<Ena
 {
     public object? InvokeWrapped(MethodInvocationDetails invocationDetails)
     {
-        logger?.LogInformation("Start method '{MethodInfo}', arguments: {Arguments}", invocationDetails.Name, string.Join(',', invocationDetails.Args));
+        logger.LogInformation("Start method '{MethodInfo}', arguments: {Arguments}", invocationDetails.Name, string.Join(',', invocationDetails.Args));
 
         var result = invocationDetails.Next();
 
-        logger?.LogInformation("End method '{MethodInfo}', result: {Result}", invocationDetails.Name, result);
+        logger.LogInformation("End method '{MethodInfo}', result: {Result}", invocationDetails.Name, result);
 
         return result;
     }
@@ -43,11 +43,11 @@ public class SecondLoggingBehavior(ILogger<SecondLoggingBehavior> logger) : IAop
 {
     public object? InvokeWrapped(MethodInvocationDetails invocationDetails)
     {
-        logger?.LogInformation("Start method '{MethodInfo}', arguments: {Arguments}", invocationDetails.Name, string.Join(',', invocationDetails.Args));
+        logger.LogInformation("Start method '{MethodInfo}', arguments: {Arguments}", invocationDetails.Name, string.Join(',', invocationDetails.Args));
 
         var result = invocationDetails.Next();
 
-        logger?.LogInformation("End method '{MethodInfo}', result: {Result}", invocationDetails.Name, result);
+        logger.LogInformation("End method '{MethodInfo}', result: {Result}", invocationDetails.Name, result);
 
         return result;
     }
