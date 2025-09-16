@@ -8,13 +8,32 @@ public class AopProxy<T> : DispatchProxy where T : class
     private T? target;
     private IEnumerable<IAopBehavior> behaviors = [];
 
+    public static T Create(T target, ICollection<IAopBehavior> behaviors)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        if (behaviors.Count == 0)
+            throw new ArgumentException("No registered behaviors", nameof(behaviors));
+
+        var decorated = Create<T, AopProxy<T>>();
+        if (decorated is not AopProxy<T> proxy)
+            throw new InvalidOperationException("Can't create proxy type");
+
+        proxy.target = target;
+        proxy.behaviors = behaviors;
+
+        return decorated;
+    }
+
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
-        if (targetMethod == null || target == null || !behaviors.Any())
-            throw new ArgumentNullException("Arguments could not be fulfilled"); // TODO: Add more verbose error handling
+        ArgumentNullException.ThrowIfNull(targetMethod);
+        if (target == null)
+            throw new ArgumentException("Invalid target");
+        if (!behaviors.Any())
+            throw new ArgumentException("No registered behaviors");
 
-        var implementedTargetMethod = GetImplementedMethod(targetMethod, target);
-        if (implementedTargetMethod == null) return null;
+        var implementedTargetMethod = GetImplementedMethod(targetMethod, target)
+            ?? throw new ArgumentException("No corresponding implemented method");
 
         var invocationDetails = new MethodInvocationDetails
         {
@@ -50,18 +69,4 @@ public class AopProxy<T> : DispatchProxy where T : class
         }
         throw new InvalidOperationException($"No implementation for the specific method '{interfaceMethod.Name}'");
     }
-
-    public static T Decorate(T target, IEnumerable<IAopBehavior> behaviors)
-    {
-        var decorated = Create<T, AopProxy<T>>();
-
-        if (decorated is AopProxy<T> proxy)
-        {
-            proxy.target = target;
-            proxy.behaviors = behaviors;
-        }
-
-        return decorated;
-    }
 }
-

@@ -1,4 +1,5 @@
 using System.Data;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Workplace.Aop.Contracts;
 
@@ -8,37 +9,43 @@ public static class AopProxyExtensions
 {
     public static IServiceCollection AddAopDecoration(this IServiceCollection services)
     {
-        var aopOptions = new AopProxyOptions(services);
-        aopOptions.BuildAttributeMapping();
+        var aopBehaviorMap = new AopBehaviorMap(services);
+        aopBehaviorMap.BuildAttributeMapping();
 
         var registrations = services.ToList();
         foreach (var registration in registrations)
         {
             if (registration.ImplementationType == null || registration.ServiceType == registration.ImplementationType) continue;
 
-            var serviceBehaviorTypes = aopOptions.GetBehaviorTypes(registration.ImplementationType);
+            var serviceBehaviorTypes = aopBehaviorMap.GetBehaviorTypes(registration.ImplementationType);
             if (serviceBehaviorTypes.Count == 0) continue;
 
             services.Remove(registration);
             services.Add(new ServiceDescriptor(registration.ImplementationType, registration.ImplementationType, registration.Lifetime));
             services.Add(new ServiceDescriptor(registration.ServiceType, services =>
             {
-                var proxyType = typeof(AopProxy<>).MakeGenericType(registration.ServiceType);
-                var factoryMethod = proxyType.GetMethod(nameof(AopProxy<object>.Decorate));
-
                 var target = services.GetRequiredService(registration.ImplementationType);
                 var serviceBehaviors = serviceBehaviorTypes
-                    .Select(x => services.GetService(x) as IAopBehavior)
+                    .Select(x => services.GetService(x))
+                    .OfType<IAopBehavior>()
                     .ToList();
-                return factoryMethod?.Invoke(null, [target, serviceBehaviors])
-                    ?? throw new InvalidOperationException($"Could not instantiate AoP proxy for type {registration.ServiceType}");
+                return CreateAopProxy(registration.ServiceType, target, serviceBehaviors);
             }, registration.Lifetime));
         }
         return services;
     }
+
+    private static object CreateAopProxy(Type serviceType, object target, List<IAopBehavior> behaviors)
+    {
+        var proxyType = typeof(AopProxy<>).MakeGenericType(serviceType);
+        var factoryMethod = proxyType.GetMethod(nameof(AopProxy<object>.Create))!;
+        return factoryMethod.Invoke(null, [target, behaviors])
+            ?? throw new InvalidOperationException($"Could not instantiate AoP proxy for type {serviceType}");
+
+    }
 }
 
-public class AopProxyOptions(IServiceCollection services)
+public class AopBehaviorMap(IServiceCollection services)
 {
     private readonly Dictionary<Type, HashSet<Type>> behaviorMappings = [];
 
@@ -51,7 +58,8 @@ public class AopProxyOptions(IServiceCollection services)
         foreach (var behaviorType in behaviorTypes)
         {
             var attributeTypes = behaviorType.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IAopBehavior<>)).Distinct()
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IAopBehavior<>))
+                .Distinct()
                 .Select(x => x.GetGenericArguments()[0]);
             foreach (var attributeType in attributeTypes)
             {
@@ -65,9 +73,7 @@ public class AopProxyOptions(IServiceCollection services)
     internal ICollection<Type> GetBehaviorTypes(Type implementationType)
     {
         var serviceAopAttributeTypes = implementationType.GetMethods()
-            .SelectMany(x => x.CustomAttributes)
-            .Select(x => x.AttributeType)
-            .Where(x => typeof(AopAttibute).IsAssignableFrom(x))
+            .SelectMany(GetAopAttributeTypes)
             .ToHashSet();
 
         HashSet<Type> results = [];
@@ -77,5 +83,12 @@ public class AopProxyOptions(IServiceCollection services)
             results.UnionWith(values);
         }
         return results;
+    }
+
+    public static IEnumerable<Type> GetAopAttributeTypes(MethodInfo methodInfo)
+    {
+        return methodInfo.CustomAttributes
+            .Select(x => x.AttributeType)
+            .Where(x => typeof(AopAttibute).IsAssignableFrom(x));
     }
 }
