@@ -4,10 +4,15 @@ using Workplace.Aop.Contracts;
 namespace Workplace.Aop.DependencyInjection;
 
 /// <summary>
-/// Class that stores aspects (the combination of advices and pointcuts)
+/// Stores the association between advice types and pointcut types
 /// </summary>
-public class AspectTypesMap(Dictionary<Type, HashSet<Type>> aspectMap)
+public class AspectTypesMap(Dictionary<Type, HashSet<Type>> aspectTypesMap)
 {
+    /// <summary>
+    /// Build aspect types map based on the registered services
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
     public static AspectTypesMap Build(IServiceCollection services)
     {
         var adviceTypes = services
@@ -32,7 +37,6 @@ public class AspectTypesMap(Dictionary<Type, HashSet<Type>> aspectMap)
         return new AspectTypesMap(aspectMap);
     }
 
-
     /// <summary>
     /// Gets the pointcut types that have at least an advice attached
     /// </summary>
@@ -45,34 +49,14 @@ public class AspectTypesMap(Dictionary<Type, HashSet<Type>> aspectMap)
             .ToHashSet();
 
         return pointcutTypes
-            .Where(aspectMap.ContainsKey)
+            .Where(aspectTypesMap.ContainsKey)
             .ToHashSet();
     }
 
     /// <summary>
-    /// Gets the aspect map for the specified pointcut types
+    /// Get advices types based on the pointcut type
     /// </summary>
-    /// <param name="pointcutTypes">type of the pointcuts</param>
-    /// <param name="serviceProvider">Store for advice registration</param>
+    /// <param name="pointcutType">Type of the pointcut attribute</param>
     /// <returns></returns>
-    public AspectMap GetAspectMap(HashSet<Type> pointcutTypes, IServiceProvider serviceProvider)
-    {
-        Dictionary<Type, IAdvice> advices = [];
-        Dictionary<Type, HashSet<IAdvice>> result = [];
-        foreach (var pointcutType in pointcutTypes)
-        {
-            result[pointcutType] = [];
-            var adviceTypes = aspectMap.GetValueOrDefault(pointcutType, []);
-            foreach (var adviceType in adviceTypes)
-            {
-                if (!advices.TryGetValue(adviceType, out var advice))
-                {
-                    advice = (IAdvice)serviceProvider.GetRequiredService(adviceType);
-                    advices.Add(adviceType, advice);
-                }
-                result[pointcutType].Add(advice);
-            }
-        }
-        return new AspectMap(result);
-    }
+    public HashSet<Type> GetAdviceTypes(Type pointcutType) => aspectTypesMap.GetValueOrDefault(pointcutType, []);
 }

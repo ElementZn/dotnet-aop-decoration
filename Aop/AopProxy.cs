@@ -1,6 +1,5 @@
 using System.Reflection;
 using Workplace.Aop.Contracts;
-using Workplace.Aop.DependencyInjection;
 
 namespace Workplace.Aop;
 

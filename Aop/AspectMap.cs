@@ -2,6 +2,10 @@ using Workplace.Aop.Contracts;
 
 namespace Workplace.Aop;
 
+/// <summary>
+/// Aspect map for advice retrieval based on pointcut attribute type
+/// </summary>
+/// <param name="aspectMap"></param>
 public class AspectMap(Dictionary<Type, HashSet<IAdvice>> aspectMap)
 {
     /// <summary>

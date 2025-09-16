@@ -14,11 +14,14 @@ public class MainService : IMainService
 {
     [EnableProxyLogging]
     public int GetIncrement(int a) => a + 1;
+    [NotImplementedPointcut]
     public int GetSum(int a, int b) => a + b;
     [EnableSecondProxyLogging]
     [EnableProxyLogging]
     public int GetSum(int a, int b, int c) => a + b + c;
 }
+
+public class NotImplementedPointcutAttribute : PointcutAttribute { }
 
 public class EnableProxyLoggingAttribute : PointcutAttribute { }
 
@@ -38,7 +41,6 @@ public class LoggingAdvice(ILogger<LoggingAdvice> logger) : IAdvice<EnableProxyL
         return result;
     }
 }
-
 
 public class EnableSecondProxyLoggingAttribute : PointcutAttribute { }
 

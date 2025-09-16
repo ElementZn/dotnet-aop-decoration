@@ -28,11 +28,32 @@ public static class AopExtensions
             services.Add(new ServiceDescriptor(registration.ServiceType, sp =>
             {
                 var target = sp.GetRequiredService(registration.ImplementationType);
-                var aspectMap = aspectTypesMap.GetAspectMap(pointcutTypes, sp);
+                var aspectMap = sp.GetAspectMap(aspectTypesMap, pointcutTypes);
                 return CreateAopProxy(registration.ServiceType, target, aspectMap);
             }, registration.Lifetime));
         }
         return services;
+    }
+
+    private static AspectMap GetAspectMap(this IServiceProvider serviceProvider, AspectTypesMap aspectTypesMap, HashSet<Type> pointcutTypes)
+    {
+        Dictionary<Type, IAdvice> advices = [];
+        Dictionary<Type, HashSet<IAdvice>> result = [];
+        foreach (var pointcutType in pointcutTypes)
+        {
+            result[pointcutType] = [];
+            var adviceTypes = aspectTypesMap.GetAdviceTypes(pointcutType);
+            foreach (var adviceType in adviceTypes)
+            {
+                if (!advices.TryGetValue(adviceType, out var advice))
+                {
+                    advice = (IAdvice)serviceProvider.GetRequiredService(adviceType);
+                    advices.Add(adviceType, advice);
+                }
+                result[pointcutType].Add(advice);
+            }
+        }
+        return new AspectMap(result);
     }
 
     private static object CreateAopProxy(Type serviceType, object target, AspectMap aspectMap)
