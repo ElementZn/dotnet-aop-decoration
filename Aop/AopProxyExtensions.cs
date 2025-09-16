@@ -1,3 +1,4 @@
+using System.Data;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Workplace.Aop.Contracts;
@@ -6,15 +7,18 @@ namespace Workplace.Aop;
 
 public static class AopProxyExtensions
 {
-    public static IServiceCollection AddAopDecoration(this IServiceCollection services)
+    public static IServiceCollection AddAopDecoration(this IServiceCollection services, Action<AopProxyOptions> configureAction)
     {
+        var aopOptions = new AopProxyOptions();
+        configureAction(aopOptions);
+
+        var aopBehaviorTypes = aopOptions.GetBehaviorTypes();
+        if (aopBehaviorTypes.Count == 0) return services;
+
         var aopAttributeTypes = Assembly.GetExecutingAssembly().GetTypes()
             .Where(x => !x.IsAbstract && typeof(AopAttibute).IsAssignableFrom(x))
             .ToList();
-        var aopBehaviorTypes = services
-            .Select(x => x.ServiceType)
-            .Where(x => !x.IsAbstract && typeof(IAopBehavior).IsAssignableFrom(x))
-            .ToList();
+        if (aopAttributeTypes.Count == 0) return services;
 
         var registrations = services.ToList();
         foreach (var registration in registrations)
@@ -40,11 +44,13 @@ public static class AopProxyExtensions
                     ?? throw new InvalidOperationException($"Could not instantiate AoP proxy for type {registration.ServiceType}");
             }, registration.Lifetime));
         }
-
         return services;
     }
 
-    private static List<Type> GetServiceBehaviorTypes(List<Type> aopAttributeTypes, List<Type> aopBehaviorTypes, Type implementationType)
+    private static List<Type> GetServiceBehaviorTypes(
+        IReadOnlyCollection<Type> aopAttributeTypes, 
+        IReadOnlyCollection<Type> aopBehaviorTypes, 
+        Type implementationType)
     {
         var serviceAopAttributeTypes = implementationType.GetMethods()
             .SelectMany(x => x.CustomAttributes)
@@ -65,4 +71,17 @@ public static class AopProxyExtensions
             .ToList();
         return serviceBehaviorTypes;
     }
+}
+
+public class AopProxyOptions()
+{
+    private readonly HashSet<Type> _behaviorTypes = [];
+
+    public AopProxyOptions AddBehavior<T>() where T : IAopBehavior
+    {
+        _behaviorTypes.Add(typeof(T));
+        return this;
+    }
+
+    public IReadOnlyCollection<Type> GetBehaviorTypes() => [.. _behaviorTypes];
 }
