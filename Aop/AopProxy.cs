@@ -28,12 +28,12 @@ public class AopProxy<T> : DispatchProxy where T : class
     {
         ArgumentNullException.ThrowIfNull(targetMethod);
         if (target == null)
-            throw new ArgumentException("Invalid target");
+            throw new InvalidOperationException("Invalid target");
         if (!behaviors.Any())
-            throw new ArgumentException("No registered behaviors");
+            throw new InvalidOperationException("No registered behaviors");
 
         var implementedTargetMethod = GetImplementedMethod(targetMethod, target)
-            ?? throw new ArgumentException("No corresponding implemented method");
+            ?? throw new ArgumentException("No corresponding implemented method", nameof(targetMethod));
 
         var invocationDetails = new MethodInvocationDetails
         {
