@@ -9,8 +9,8 @@ public static class AopProxyExtensions
 {
     public static IServiceCollection AddAopDecoration(this IServiceCollection services)
     {
-        var aopBehaviorMap = new AopBehaviorMap(services);
-        aopBehaviorMap.BuildAttributeMapping();
+        var aopBehaviorMap = new AopBehaviorMap();
+        aopBehaviorMap.BuildAttributeMapping(services);
 
         var registrations = services.ToList();
         foreach (var registration in registrations)
@@ -45,11 +45,11 @@ public static class AopProxyExtensions
     }
 }
 
-public class AopBehaviorMap(IServiceCollection services)
+public class AopBehaviorMap()
 {
     private readonly Dictionary<Type, HashSet<Type>> behaviorMappings = [];
 
-    internal void BuildAttributeMapping()
+    internal void BuildAttributeMapping(IServiceCollection services)
     {
         var behaviorTypes = services
             .Select(x => x.ServiceType)
