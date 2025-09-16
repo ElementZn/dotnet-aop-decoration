@@ -1,4 +1,4 @@
-namespace Workplace.Aop.Contracts;
+namespace AoPeas;
 
 /// <summary>
 /// Attribute for the pointcut, which specifies when an advice should be applied

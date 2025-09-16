@@ -1,7 +1,6 @@
 using System.Reflection;
-using Workplace.Aop.Contracts;
 
-namespace Workplace.Aop;
+namespace AoPeas.Internal;
 
 public static class MethodInfoExtensions
 {

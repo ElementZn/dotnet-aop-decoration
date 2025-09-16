@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
-using Workplace.Aop.Contracts;
+using AoPeas;
 
-namespace Workplace.Example;
+namespace Example;
 
 public interface IMainService
 {

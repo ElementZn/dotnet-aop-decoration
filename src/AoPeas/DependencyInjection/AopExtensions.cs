@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using Workplace.Aop.Contracts;
+using AoPeas.Internal;
 
-namespace Workplace.Aop.DependencyInjection;
+namespace AoPeas.DependencyInjection;
 
 public static class AopExtensions
 {
@@ -37,7 +37,7 @@ public static class AopExtensions
 
     private static AspectMap GetAspectMap(this IServiceProvider serviceProvider, AspectTypesMap aspectTypesMap, HashSet<Type> pointcutTypes)
     {
-        Dictionary<Type, IAdvice> advices = [];
+        Dictionary<Type, IAdvice> advicesCache = [];
         Dictionary<Type, HashSet<IAdvice>> result = [];
         foreach (var pointcutType in pointcutTypes)
         {
@@ -45,10 +45,10 @@ public static class AopExtensions
             var adviceTypes = aspectTypesMap.GetAdviceTypes(pointcutType);
             foreach (var adviceType in adviceTypes)
             {
-                if (!advices.TryGetValue(adviceType, out var advice))
+                if (!advicesCache.TryGetValue(adviceType, out var advice))
                 {
                     advice = (IAdvice)serviceProvider.GetRequiredService(adviceType);
-                    advices.Add(adviceType, advice);
+                    advicesCache.Add(adviceType, advice);
                 }
                 result[pointcutType].Add(advice);
             }

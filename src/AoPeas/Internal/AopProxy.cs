@@ -1,7 +1,6 @@
 using System.Reflection;
-using Workplace.Aop.Contracts;
 
-namespace Workplace.Aop;
+namespace AoPeas.Internal;
 
 public class AopProxy<T> : DispatchProxy where T : class
 {
@@ -18,6 +17,7 @@ public class AopProxy<T> : DispatchProxy where T : class
         proxy.target = target;
 
         ArgumentNullException.ThrowIfNull(aspectMap);
+        if (aspectMap.IsEmpty()) throw new ArgumentException(null, nameof(aspectMap));
         proxy.aspectMap = aspectMap;
 
         return decorated;

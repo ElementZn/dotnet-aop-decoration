@@ -1,10 +1,9 @@
+using AoPeas.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Workplace.Aop.DependencyInjection;
-using Workplace.Example;
 
-namespace Workplace;
+namespace Example;
 
 public static class Program
 {

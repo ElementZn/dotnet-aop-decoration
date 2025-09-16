@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using Workplace.Aop.Contracts;
+using AoPeas.Internal;
 
-namespace Workplace.Aop.DependencyInjection;
+namespace AoPeas.DependencyInjection;
 
 /// <summary>
 /// Stores the association between advice types and pointcut types

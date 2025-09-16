@@ -1,4 +1,4 @@
-namespace Workplace.Aop.Contracts;
+namespace AoPeas;
 
 /// <summary>
 /// Interface for implementing an advice, which specifies the code to be run
