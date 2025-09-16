@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace AoPeas.Internal;
 
-public class AopProxy<T> : DispatchProxy where T : class
+internal class AopProxy<T> : DispatchProxy where T : class
 {
     private T target = null!; // initialized in factory method
     private AspectMap aspectMap = null!; // initialized in factory method

@@ -21,8 +21,14 @@ public class TestService : ITestService
     public int GetSum(int a, int b, int c) => a + b + c;
 }
 
-
 public class NotImplementedPointcutAttribute : PointcutAttribute { }
+
+public class NoAdviceAttribute : PointcutAttribute { }
+
+public class NoAdvice : IAdvice<NoAdviceAttribute>
+{
+    public object? Apply(MethodInvocationDetails invocationDetails) => invocationDetails.Next();
+}
 
 public class EnableProxyLoggingAttribute : PointcutAttribute { }
 
