@@ -20,13 +20,13 @@ public class MainService : IMainService
     public int GetSum(int a, int b, int c) => a + b + c;
 }
 
-public class EnableProxyLoggingAttribute : AopAttibute { }
+public class EnableProxyLoggingAttribute : PointcutAttribute { }
 
-public class LoggingBehavior(ILogger<LoggingBehavior> logger) : IAopBehavior<EnableProxyLoggingAttribute>
+public class LoggingAdvice(ILogger<LoggingAdvice> logger) : IAdvice<EnableProxyLoggingAttribute>
 {
     private int count = 0;
 
-    public object? InvokeWrapped(MethodInvocationDetails invocationDetails)
+    public object? Apply(MethodInvocationDetails invocationDetails)
     {
         count++;
         logger.LogInformation("Start method '{MethodInfo}', arguments: {Arguments}, count: {count}", invocationDetails.Name, string.Join(',', invocationDetails.Args), count);
@@ -40,11 +40,11 @@ public class LoggingBehavior(ILogger<LoggingBehavior> logger) : IAopBehavior<Ena
 }
 
 
-public class EnableSecondProxyLoggingAttribute : AopAttibute { }
+public class EnableSecondProxyLoggingAttribute : PointcutAttribute { }
 
-public class SecondLoggingBehavior(ILogger<SecondLoggingBehavior> logger) : IAopBehavior<EnableSecondProxyLoggingAttribute>
+public class SecondLoggingAdvice(ILogger<SecondLoggingAdvice> logger) : IAdvice<EnableSecondProxyLoggingAttribute>
 {
-    public object? InvokeWrapped(MethodInvocationDetails invocationDetails)
+    public object? Apply(MethodInvocationDetails invocationDetails)
     {
         logger.LogInformation("Start method '{MethodInfo}', arguments: {Arguments}", invocationDetails.Name, string.Join(',', invocationDetails.Args));
 

@@ -19,10 +19,10 @@ public static class Program
         services.AddScoped<IMainService, MainService>();
         services.AddScoped<Runner>();
 
-        services.AddScoped<LoggingBehavior>();
-        services.AddScoped<SecondLoggingBehavior>();
+        services.AddScoped<LoggingAdvice>();
+        services.AddScoped<SecondLoggingAdvice>();
 
-        services.AddAopDecoration();
+        services.AddAop();
 
         var host = builder.Build();
 
