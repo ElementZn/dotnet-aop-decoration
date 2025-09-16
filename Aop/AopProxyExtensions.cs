@@ -73,7 +73,7 @@ public class AopBehaviorMap()
     internal ICollection<Type> GetBehaviorTypes(Type implementationType)
     {
         var serviceAopAttributeTypes = implementationType.GetMethods()
-            .SelectMany(GetAopAttributeTypes)
+            .SelectMany(MehtodInvocationExtenstions.GetAopAttributeTypes)
             .ToHashSet();
 
         HashSet<Type> results = [];
@@ -83,12 +83,5 @@ public class AopBehaviorMap()
             results.UnionWith(values);
         }
         return results;
-    }
-
-    public static IEnumerable<Type> GetAopAttributeTypes(MethodInfo methodInfo)
-    {
-        return methodInfo.CustomAttributes
-            .Select(x => x.AttributeType)
-            .Where(x => typeof(AopAttibute).IsAssignableFrom(x));
     }
 }
