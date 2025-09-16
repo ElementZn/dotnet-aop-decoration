@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Workplace.Aop;
+using Workplace.Aop.DependencyInjection;
 using Workplace.Example;
 
 namespace Workplace;
