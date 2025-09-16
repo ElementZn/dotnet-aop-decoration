@@ -22,8 +22,8 @@ public class AopProxyTests
         var testService = new TestService();
         var aspectMap = new AspectMap(new() { [typeof(NoAdviceAttribute)] = [new NoAdvice()] });
 
-        var exception = Record.Exception(() => AopProxy<ITestService>.Create(testService, aspectMap));
+        var result =  AopProxy<ITestService>.Create(testService, aspectMap);
 
-        Assert.Null(exception);
+        Assert.Equal(4, result.GetIncrement(3));
     }
 }
