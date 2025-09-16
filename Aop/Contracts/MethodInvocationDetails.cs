@@ -1,5 +1,8 @@
 namespace Workplace.Aop.Contracts;
 
+/// <summary>
+/// Details for the invoked method
+/// </summary>
 public record MethodInvocationDetails
 {
     public required string Name { get; init; }

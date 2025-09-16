@@ -6,9 +6,9 @@ namespace Workplace.Aop;
 public class AopProxy<T> : DispatchProxy where T : class
 {
     private T target = null!; // initialized in factory method
-    private Dictionary<Type, HashSet<IAopBehavior>> behaviorMap = [];
+    private AspectMap aspectMap = null!; // initialized in factory method
 
-    public static T Create(T target, Dictionary<Type, HashSet<IAopBehavior>> behaviorMap)
+    public static T Create(T target, AspectMap aspectMap)
     {
         var decorated = Create<T, AopProxy<T>>();
         if (decorated is not AopProxy<T> proxy)
@@ -17,9 +17,8 @@ public class AopProxy<T> : DispatchProxy where T : class
         ArgumentNullException.ThrowIfNull(target);
         proxy.target = target;
 
-        if (behaviorMap.Count == 0)
-            throw new ArgumentException("No registered behaviors", nameof(behaviorMap));
-        proxy.behaviorMap = behaviorMap;
+        ArgumentNullException.ThrowIfNull(aspectMap);
+        proxy.aspectMap = aspectMap;
 
         return decorated;
     }
@@ -28,8 +27,7 @@ public class AopProxy<T> : DispatchProxy where T : class
     {
         ArgumentNullException.ThrowIfNull(targetMethod);
 
-        var implementedTargetMethod = GetImplementedMethod(targetMethod)
-            ?? throw new ArgumentException("No corresponding implemented method", nameof(targetMethod));
+        var implementedTargetMethod = GetImplementedMethod(targetMethod);
 
         var invocationDetails = new MethodInvocationDetails
         {
@@ -39,14 +37,14 @@ public class AopProxy<T> : DispatchProxy where T : class
             Next = () => implementedTargetMethod.Invoke(target, args)
         };
 
-        var aopAttributeTypes = implementedTargetMethod.GetAopAttributeTypes().Reverse();
-        foreach (var aopAttributeType in aopAttributeTypes)
+        var pointcutTypes = implementedTargetMethod.GetPointcutTypes().Reverse();
+        foreach (var pointcutType in pointcutTypes)
         {
-            var behaviors = behaviorMap.GetValueOrDefault(aopAttributeType, []);
-            foreach (var behavior in behaviors)
+            var advices = aspectMap.GetAdvices(pointcutType);
+            foreach (var advice in advices)
             {
                 var previousInvocationDetails = invocationDetails;
-                invocationDetails = invocationDetails with { Next = () => behavior.InvokeWrapped(previousInvocationDetails) };
+                invocationDetails = invocationDetails with { Next = () => advice.Apply(previousInvocationDetails) };
             }
         }
         var result = invocationDetails.Next();
