@@ -2,15 +2,15 @@ using System.Reflection;
 
 namespace AoPeas.Internal;
 
-internal class AopProxy<T> : DispatchProxy where T : class
+internal class AopProxy : DispatchProxy
 {
-    private T target = null!; // initialized in factory method
+    private object target = null!; // initialized in factory method
     private AspectMap aspectMap = null!; // initialized in factory method
 
-    public static T Create(T target, AspectMap aspectMap)
+    public static object Create(Type serviceType, object target, AspectMap aspectMap)
     {
-        var decorated = Create<T, AopProxy<T>>();
-        if (decorated is not AopProxy<T> proxy)
+        var decorated = Create(serviceType, typeof(AopProxy));
+        if (decorated is not AopProxy proxy)
             throw new InvalidOperationException("Can't create proxy type");
 
         ArgumentNullException.ThrowIfNull(target);

@@ -11,7 +11,7 @@ public class AopProxyTests
         var testService = new TestService();
         var aspectMap = new AspectMap(new() { [typeof(NoAdviceAttribute)] = [new NoAdvice()] });
 
-        var proxy =  AopProxy<ITestService>.Create(testService, aspectMap);
+        var proxy = (ITestService)AopProxy.Create(typeof(ITestService), testService, aspectMap);
 
         Assert.Equal(4, proxy.GetIncrement(3));
     }
@@ -22,7 +22,7 @@ public class AopProxyTests
         var testService = new TestService();
         var aspectMap = new AspectMap(new() { [typeof(AddTenAttribute)] = [new AddTen()] });
 
-        var proxy =  AopProxy<ITestService>.Create(testService, aspectMap);
+        var proxy = (ITestService)AopProxy.Create(typeof(ITestService), testService, aspectMap);
 
         Assert.Equal(14, proxy.GetIncrement(3));
     }
