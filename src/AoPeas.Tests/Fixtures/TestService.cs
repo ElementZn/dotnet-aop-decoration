@@ -12,7 +12,8 @@ public interface ITestService
 
 public class TestService : ITestService
 {
-    [EnableProxyLogging]
+    [NoAdvice]
+    [AddTen]
     public int GetIncrement(int a) => a + 1;
     [NotImplementedPointcut]
     public int GetSum(int a, int b) => a + b;
@@ -21,8 +22,21 @@ public class TestService : ITestService
     public int GetSum(int a, int b, int c) => a + b + c;
 }
 
-
 public class NotImplementedPointcutAttribute : PointcutAttribute { }
+
+public class NoAdviceAttribute : PointcutAttribute { }
+
+public class NoAdvice : IAdvice<NoAdviceAttribute>
+{
+    public object? Apply(MethodInvocationDetails invocationDetails) => invocationDetails.Next();
+}
+
+public class AddTenAttribute : PointcutAttribute { }
+
+public class AddTen : IAdvice<AddTenAttribute>
+{
+    public object? Apply(MethodInvocationDetails invocationDetails) => (invocationDetails.Next() as int?) + 10;
+}
 
 public class EnableProxyLoggingAttribute : PointcutAttribute { }
 

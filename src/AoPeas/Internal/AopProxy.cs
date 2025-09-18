@@ -2,25 +2,27 @@ using System.Reflection;
 
 namespace AoPeas.Internal;
 
-public class AopProxy<T> : DispatchProxy where T : class
+internal class AopProxy : DispatchProxy
 {
-    private T target = null!; // initialized in factory method
+    private object target = null!; // initialized in factory method
     private AspectMap aspectMap = null!; // initialized in factory method
 
-    public static T Create(T target, AspectMap aspectMap)
+    public static object Create(Type serviceType, object target, AspectMap aspectMap)
     {
-        var decorated = Create<T, AopProxy<T>>();
-        if (decorated is not AopProxy<T> proxy)
-            throw new InvalidOperationException("Can't create proxy type");
+        ArgumentNullException.ThrowIfNull(serviceType);
+        var proxy = (AopProxy)Create(serviceType, typeof(AopProxy));
 
         ArgumentNullException.ThrowIfNull(target);
+        if (!serviceType.IsAssignableFrom(target.GetType()))
+            throw new ArgumentException($"'{target.GetType()}' does not implement '{serviceType}'", nameof(target));
         proxy.target = target;
 
         ArgumentNullException.ThrowIfNull(aspectMap);
-        if (aspectMap.IsEmpty()) throw new ArgumentException(null, nameof(aspectMap));
+        if (aspectMap.IsEmpty())
+            throw new ArgumentException(null, nameof(aspectMap));
         proxy.aspectMap = aspectMap;
 
-        return decorated;
+        return proxy;
     }
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)

@@ -19,4 +19,8 @@
     <Using Include="System" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="AoPeas.Tests" />
+  </ItemGroup>
+
 </Project>

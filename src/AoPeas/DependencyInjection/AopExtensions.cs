@@ -1,5 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
 using AoPeas.Internal;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AoPeas.DependencyInjection;
 
@@ -29,7 +29,7 @@ public static class AopExtensions
             {
                 var target = sp.GetRequiredService(registration.ImplementationType);
                 var aspectMap = sp.GetAspectMap(aspectTypesMap, pointcutTypes);
-                return CreateAopProxy(registration.ServiceType, target, aspectMap);
+                return AopProxy.Create(registration.ServiceType, target, aspectMap);
             }, registration.Lifetime));
         }
         return services;
@@ -54,13 +54,5 @@ public static class AopExtensions
             }
         }
         return new AspectMap(result);
-    }
-
-    private static object CreateAopProxy(Type serviceType, object target, AspectMap aspectMap)
-    {
-        var proxyType = typeof(AopProxy<>).MakeGenericType(serviceType);
-        var factoryMethod = proxyType.GetMethod(nameof(AopProxy<object>.Create))!;
-        return factoryMethod.Invoke(null, [target, aspectMap])
-            ?? throw new InvalidOperationException($"Could not instantiate AoP proxy for type {serviceType}");
     }
 }

@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/AoPeas/AoPeas.csproj" />
+    <ProjectReference Include="../AoPeas/AoPeas.csproj" />
   </ItemGroup>
   
   <ItemGroup>
