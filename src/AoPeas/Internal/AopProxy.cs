@@ -9,18 +9,20 @@ internal class AopProxy : DispatchProxy
 
     public static object Create(Type serviceType, object target, AspectMap aspectMap)
     {
-        var decorated = Create(serviceType, typeof(AopProxy));
-        if (decorated is not AopProxy proxy)
-            throw new InvalidOperationException("Can't create proxy type");
+        ArgumentNullException.ThrowIfNull(serviceType);
+        var proxy = (AopProxy)Create(serviceType, typeof(AopProxy));
 
         ArgumentNullException.ThrowIfNull(target);
+        if (!serviceType.IsAssignableFrom(target.GetType()))
+            throw new ArgumentException($"'{target.GetType()}' does not implement '{serviceType}'", nameof(target));
         proxy.target = target;
 
         ArgumentNullException.ThrowIfNull(aspectMap);
-        if (aspectMap.IsEmpty()) throw new ArgumentException(null, nameof(aspectMap));
+        if (aspectMap.IsEmpty())
+            throw new ArgumentException(null, nameof(aspectMap));
         proxy.aspectMap = aspectMap;
 
-        return decorated;
+        return proxy;
     }
 
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)

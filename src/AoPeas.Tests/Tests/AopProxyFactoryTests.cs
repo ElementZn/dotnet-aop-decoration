@@ -17,6 +17,17 @@ public class AopProxyFactoryTests
     }
 
     [Fact]
+    public void GivenMismatchedTypes_WhenCreatingProxy_Throws()
+    {
+        var testService = new object();
+        var aspectMap = new AspectMap(new() { [typeof(NoAdviceAttribute)] = [new NoAdvice()] });
+
+        var exception = Record.Exception(() => AopProxy.Create(typeof(ITestService), testService, aspectMap));
+
+        Assert.IsType<ArgumentException>(exception);
+    }
+
+    [Fact]
     public void GivenValidParams_WhenCreatingProxy_ReturnsSuccess()
     {
         var testService = new TestService();
