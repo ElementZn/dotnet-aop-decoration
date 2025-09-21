@@ -1,5 +1,6 @@
 using AoPeas.Internal;
 using AoPeas.Tests.Fixtures;
+using AoPeas.Tests.Fixtures.Sut;
 
 namespace AoPeas.Tests.Tests;
 
@@ -20,7 +21,7 @@ public class AopProxyFactoryTests
     public void GivenMismatchedTypes_WhenCreatingProxy_Throws()
     {
         var testService = new object();
-        var aspectMap = new AspectMap(new() { [typeof(NoAdviceAttribute)] = [new NoAdvice()] });
+        var aspectMap = new AspectMap(new() { [typeof(PassthroughPointcutAttribute)] = [new PassthroughPointcut()] });
 
         var exception = Record.Exception(() => AopProxy.Create(typeof(ITestService), testService, aspectMap));
 
@@ -31,7 +32,7 @@ public class AopProxyFactoryTests
     public void GivenValidParams_WhenCreatingProxy_ReturnsSuccess()
     {
         var testService = new TestService();
-        var aspectMap = new AspectMap(new() { [typeof(NoAdviceAttribute)] = [new NoAdvice()] });
+        var aspectMap = new AspectMap(new() { [typeof(PassthroughPointcutAttribute)] = [new PassthroughPointcut()] });
 
         var exception = Record.Exception(() => AopProxy.Create(typeof(ITestService), testService, aspectMap));
 

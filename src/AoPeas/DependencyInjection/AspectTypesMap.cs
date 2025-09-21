@@ -1,5 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
 using AoPeas.Internal;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AoPeas.DependencyInjection;
 
@@ -45,7 +45,8 @@ public class AspectTypesMap(Dictionary<Type, HashSet<Type>> aspectTypesMap)
     public HashSet<Type> GetAdvisedPointcutTypes(Type implementationType)
     {
         var pointcutTypes = implementationType.GetMethods()
-            .SelectMany(MethodInfoExtensions.GetPointcutTypes)
+            .SelectMany(ReflectionExtensions.GetPointcutTypes)
+            .Union(implementationType.GetPointcutTypes())
             .ToHashSet();
 
         return pointcutTypes

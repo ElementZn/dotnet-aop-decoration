@@ -1,29 +1,80 @@
 using AoPeas.Internal;
 using AoPeas.Tests.Fixtures;
+using AoPeas.Tests.Fixtures.Sut;
 
 namespace AoPeas.Tests.Tests;
 
 public class AopProxyTests
 {
-    [Fact]
-    public void GivenAdvice_WhenCallingMethod_ReturnsCorrectResult()
+    private readonly LogCalls logCallsPointcut;
+    private readonly CountCalls countCallsPointcut;
+    private readonly ITestService proxySut;
+
+    public AopProxyTests()
     {
+        logCallsPointcut = new LogCalls();
+        countCallsPointcut = new CountCalls();
+        var aspectMap = new AspectMap(new()
+        {
+            [typeof(PassthroughPointcutAttribute)] = [new PassthroughPointcut()],
+            [typeof(LogCallsAttribute)] = [logCallsPointcut],
+            [typeof(CountCallsAttribute)] = [countCallsPointcut]
+        });
         var testService = new TestService();
-        var aspectMap = new AspectMap(new() { [typeof(NoAdviceAttribute)] = [new NoAdvice()] });
-
-        var proxy = (ITestService)AopProxy.Create(typeof(ITestService), testService, aspectMap);
-
-        Assert.Equal(4, proxy.GetIncrement(3));
+        proxySut = (ITestService)AopProxy.Create(typeof(ITestService), testService, aspectMap);
     }
 
     [Fact]
-    public void GivenAdvice_WhenAdjustingResult_ReturnsModifiedResult()
+    public void WhenCallingMethod_ReturnsCorrectResult()
     {
-        var testService = new TestService();
-        var aspectMap = new AspectMap(new() { [typeof(AddTenAttribute)] = [new AddTen()] });
+        var param1 = 4;
 
-        var proxy = (ITestService)AopProxy.Create(typeof(ITestService), testService, aspectMap);
+        var result = proxySut.GetIncrement(param1);
 
-        Assert.Equal(14, proxy.GetIncrement(3));
+        Assert.Equal(param1 + 1, result);
+    }
+
+    [Fact]
+    public void WhenCallingOverloadedMethod_AppliesCorrespondingAdvice()
+    {
+        var param1 = 4;
+        var param2 = 6;
+
+        proxySut.GetSum(param1, param2);
+
+        var result = logCallsPointcut.GetLogs();
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void WhenCallingMethod_AppliesAdvice()
+    {
+        var param1 = 4;
+        var param2 = 6;
+        var param3 = 8;
+
+        proxySut.GetSum(param1, param2, param3);
+
+        var result = logCallsPointcut.GetLogs();
+        Assert.Equal(2, result.Count);
+        var startLog = result[0];
+        Assert.Contains($"arguments: {param1},{param2},{param3}", startLog);
+        var endLog = result[1];
+        Assert.Contains($"result: {param1 + param2 + param3}", endLog);
+    }
+
+    [Fact]
+    public void GivenClassAdvice_WhenCallingMultipleMethods_AppliesAdvice()
+    {
+        var param1 = 4;
+        var param2 = 6;
+        var param3 = 8;
+
+        proxySut.GetIncrement(param1);
+        proxySut.GetSum(param1, param2);
+        proxySut.GetSum(param1, param2, param3);
+
+        var result = countCallsPointcut.GetCounter();
+        Assert.Equal(3, result);
     }
 }
