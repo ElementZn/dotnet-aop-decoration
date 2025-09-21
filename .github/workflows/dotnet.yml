@@ -16,8 +16,8 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore src/AoPeas.sln
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore src/AoPeas.sln
     - name: Test
-      run: dotnet test --no-build
+      run: dotnet test --no-build src/AoPeas.sln
