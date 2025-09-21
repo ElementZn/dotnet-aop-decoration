@@ -62,4 +62,19 @@ public class AopProxyTests
         var endLog = result[1];
         Assert.Contains($"result: {param1 + param2 + param3}", endLog);
     }
+
+    [Fact]
+    public void GivenClassAdvice_WhenCallingMultipleMethods_AppliesAdvice()
+    {
+        var param1 = 4;
+        var param2 = 6;
+        var param3 = 8;
+
+        proxySut.GetIncrement(param1);
+        proxySut.GetSum(param1, param2);
+        proxySut.GetSum(param1, param2, param3);
+
+        var result = countCallsPointcut.GetCounter();
+        Assert.Equal(3, result);
+    }
 }

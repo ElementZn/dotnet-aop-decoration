@@ -39,7 +39,9 @@ internal class AopProxy : DispatchProxy
             Next = () => implementedTargetMethod.Invoke(target, args)
         };
 
-        var pointcutTypes = implementedTargetMethod.GetPointcutTypes().Reverse();
+        var pointcutTypes = target.GetType().GetPointcutTypes()
+            .Union(implementedTargetMethod.GetPointcutTypes())
+            .Reverse();
         foreach (var pointcutType in pointcutTypes)
         {
             var advices = aspectMap.GetAdvices(pointcutType);
