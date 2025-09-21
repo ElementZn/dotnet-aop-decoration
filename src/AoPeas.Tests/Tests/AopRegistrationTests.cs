@@ -32,6 +32,7 @@ public class AopRegistrationTests
     {
         servicesSut.AddScoped<ITestService, TestService>();
         servicesSut.AddScoped<LogCalls>();
+        servicesSut.AddScoped<CountCalls>();
         servicesSut.AddScoped<PassthroughPointcut>();
 
         servicesSut.AddAop();

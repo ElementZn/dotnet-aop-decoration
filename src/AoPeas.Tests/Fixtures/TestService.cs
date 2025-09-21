@@ -9,6 +9,7 @@ public interface ITestService
     public int GetSum(int a, int b, int c);
 }
 
+[CountCalls]
 public class TestService : ITestService
 {
     [PassthroughPointcut]
