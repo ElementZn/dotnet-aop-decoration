@@ -7,7 +7,7 @@ public static class AopExtensions
 {
     /// <summary>
     /// Registers the AoP behavior in the app. 
-    /// Must be called after all advices and advised objects have been registered to DI
+    /// Must be called after all behaviors and decorated objects have been registered to DI
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
@@ -20,37 +20,37 @@ public static class AopExtensions
         {
             if (registration.ImplementationType == null || registration.ServiceType == registration.ImplementationType) continue;
 
-            var pointcutTypes = aspectTypesMap.GetAdvisedPointcutTypes(registration.ImplementationType);
-            if (pointcutTypes.Count == 0) continue;
+            var decoratorTypes = aspectTypesMap.GetDecoratorTypesWithBehavior(registration.ImplementationType);
+            if (decoratorTypes.Count == 0) continue;
 
             services.Remove(registration);
             services.Add(new ServiceDescriptor(registration.ImplementationType, registration.ImplementationType, registration.Lifetime));
             services.Add(new ServiceDescriptor(registration.ServiceType, sp =>
             {
                 var target = sp.GetRequiredService(registration.ImplementationType);
-                var aspectMap = sp.GetAspectMap(aspectTypesMap, pointcutTypes);
+                var aspectMap = sp.GetAspectMap(aspectTypesMap, decoratorTypes);
                 return AopProxy.Create(registration.ServiceType, target, aspectMap);
             }, registration.Lifetime));
         }
         return services;
     }
 
-    private static AspectMap GetAspectMap(this IServiceProvider serviceProvider, AspectTypesMap aspectTypesMap, HashSet<Type> pointcutTypes)
+    private static AspectMap GetAspectMap(this IServiceProvider serviceProvider, AspectTypesMap aspectTypesMap, HashSet<Type> decoratorTypes)
     {
-        Dictionary<Type, IAdvice> advicesCache = [];
-        Dictionary<Type, HashSet<IAdvice>> result = [];
-        foreach (var pointcutType in pointcutTypes)
+        Dictionary<Type, IBehavior> behaviorsCache = [];
+        Dictionary<Type, HashSet<IBehavior>> result = [];
+        foreach (var decoratorType in decoratorTypes)
         {
-            result[pointcutType] = [];
-            var adviceTypes = aspectTypesMap.GetAdviceTypes(pointcutType);
-            foreach (var adviceType in adviceTypes)
+            result[decoratorType] = [];
+            var behaviorTypes = aspectTypesMap.GetBehaviorTypes(decoratorType);
+            foreach (var behaviorType in behaviorTypes)
             {
-                if (!advicesCache.TryGetValue(adviceType, out var advice))
+                if (!behaviorsCache.TryGetValue(behaviorType, out var behavior))
                 {
-                    advice = (IAdvice)serviceProvider.GetRequiredService(adviceType);
-                    advicesCache.Add(adviceType, advice);
+                    behavior = (IBehavior)serviceProvider.GetRequiredService(behaviorType);
+                    behaviorsCache.Add(behaviorType, behavior);
                 }
-                result[pointcutType].Add(advice);
+                result[decoratorType].Add(behavior);
             }
         }
         return new AspectMap(result);

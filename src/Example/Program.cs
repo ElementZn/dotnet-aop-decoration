@@ -18,8 +18,8 @@ public static class Program
         services.AddScoped<IMainService, MainService>();
         services.AddScoped<Runner>();
 
-        services.AddScoped<LoggingAdvice>();
-        services.AddScoped<SecondLoggingAdvice>();
+        services.AddScoped<LoggingBehavior>();
+        services.AddScoped<SecondLoggingBehavior>();
 
         services.AddAop();
 

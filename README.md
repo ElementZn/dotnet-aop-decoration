@@ -20,11 +20,11 @@ services.AddScoped<IMainService, MainService>();
 You can define custom attributes with attached behavior as follows:
 
 ```csharp
-// Pointcut (attribute that marks where to inject custom behavior)
-public class EnableProxyLoggingAttribute : PointcutAttribute { }
+// Decorator (attribute that marks where to inject custom behavior)
+public class EnableProxyLoggingAttribute : DecoratorAttribute { }
 
-// Advice (functionality to inject)
-public class LoggingAdvice(ILogger<LoggingAdvice> logger) : IAdvice<EnableProxyLoggingAttribute>
+// Behavior (functionality to inject)
+public class LoggingBehavior(ILogger<LoggingBehavior> logger) : IBehavior<EnableProxyLoggingAttribute>
 {
     public object? Apply(MethodInvocationDetails invocationDetails)
     {
@@ -43,7 +43,7 @@ Add AoP registration to DI:
 
 ```csharp
 services.AddScoped<IMainService, MainService>();
-services.AddScoped<LoggingAdvice>();
+services.AddScoped<LoggingBehavior>();
 services.AddAop();
 ```
 
@@ -59,6 +59,6 @@ public interface MainService : IMainService
 
 Example Output:
 ```shell
-Example.LoggingAdvice: Information: Start method 'GetSum', arguments: 5,7
-Example.LoggingAdvice: Information: End method 'GetSum', result: 12
+Example.LoggingBehavior: Information: Start method 'GetSum', arguments: 5,7
+Example.LoggingBehavior: Information: End method 'GetSum', result: 12
 ```

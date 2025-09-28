@@ -12,9 +12,9 @@ public interface ITestService
 [CountCalls]
 public class TestService : ITestService
 {
-    [PassthroughPointcut]
+    [PassthroughDecorator]
     public int GetIncrement(int a) => a + 1;
-    [NoImplementedPointcut]
+    [NoImplementedDecorator]
     public int GetSum(int a, int b) => a + b;
     [LogCalls]
     public int GetSum(int a, int b, int c) => a + b + c;

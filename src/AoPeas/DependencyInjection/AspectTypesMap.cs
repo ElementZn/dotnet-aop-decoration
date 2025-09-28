@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace AoPeas.DependencyInjection;
 
 /// <summary>
-/// Stores the association between advice types and pointcut types
+/// Stores the association between behavior types and decorator types
 /// </summary>
 public class AspectTypesMap(Dictionary<Type, HashSet<Type>> aspectTypesMap)
 {
@@ -15,49 +15,49 @@ public class AspectTypesMap(Dictionary<Type, HashSet<Type>> aspectTypesMap)
     /// <returns></returns>
     public static AspectTypesMap Build(IServiceCollection services)
     {
-        var adviceTypes = services
+        var behaviorTypes = services
             .Select(x => x.ServiceType)
-            .Where(x => !x.IsAbstract && typeof(IAdvice).IsAssignableFrom(x))
+            .Where(x => !x.IsAbstract && typeof(IBehavior).IsAssignableFrom(x))
             .Distinct();
 
         Dictionary<Type, HashSet<Type>> aspectMap = [];
-        foreach (var adviceType in adviceTypes)
+        foreach (var behaviorType in behaviorTypes)
         {
-            var attributeTypes = adviceType.GetInterfaces()
-                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IAdvice<>))
+            var attributeTypes = behaviorType.GetInterfaces()
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IBehavior<>))
                 .Distinct()
                 .Select(x => x.GetGenericArguments()[0]);
             foreach (var attributeType in attributeTypes)
             {
                 if (!aspectMap.ContainsKey(attributeType))
                     aspectMap.Add(attributeType, []);
-                aspectMap[attributeType].Add(adviceType);
+                aspectMap[attributeType].Add(behaviorType);
             }
         }
         return new AspectTypesMap(aspectMap);
     }
 
     /// <summary>
-    /// Gets the pointcut types that have at least an advice attached
+    /// Gets the decorator types that have at least a behavior attached
     /// </summary>
     /// <param name="implementationType">Type of the service implementation</param>
     /// <returns></returns>
-    public HashSet<Type> GetAdvisedPointcutTypes(Type implementationType)
+    public HashSet<Type> GetDecoratorTypesWithBehavior(Type implementationType)
     {
-        var pointcutTypes = implementationType.GetMethods()
-            .SelectMany(ReflectionExtensions.GetPointcutTypes)
-            .Union(implementationType.GetPointcutTypes())
+        var decoratorTypes = implementationType.GetMethods()
+            .SelectMany(ReflectionExtensions.GetDecoratorTypes)
+            .Union(implementationType.GetDecoratorTypes())
             .ToHashSet();
 
-        return pointcutTypes
+        return decoratorTypes
             .Where(aspectTypesMap.ContainsKey)
             .ToHashSet();
     }
 
     /// <summary>
-    /// Get advices types based on the pointcut type
+    /// Get behaviors types based on the decorator type
     /// </summary>
-    /// <param name="pointcutType">Type of the pointcut attribute</param>
+    /// <param name="decoratorType">Type of the decorator attribute</param>
     /// <returns></returns>
-    public HashSet<Type> GetAdviceTypes(Type pointcutType) => aspectTypesMap.GetValueOrDefault(pointcutType, []);
+    public HashSet<Type> GetBehaviorTypes(Type decoratorType) => aspectTypesMap.GetValueOrDefault(decoratorType, []);
 }

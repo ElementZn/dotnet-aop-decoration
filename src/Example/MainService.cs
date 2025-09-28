@@ -14,18 +14,18 @@ public class MainService : IMainService
 {
     [EnableProxyLogging]
     public int GetIncrement(int a) => a + 1;
-    [NotImplementedPointcut]
+    [NotImplementedDecorator]
     public int GetSum(int a, int b) => a + b;
     [EnableSecondProxyLogging]
     [EnableProxyLogging]
     public int GetSum(int a, int b, int c) => a + b + c;
 }
 
-public class NotImplementedPointcutAttribute : PointcutAttribute { }
+public class NotImplementedDecoratorAttribute : DecoratorAttribute { }
 
-public class EnableProxyLoggingAttribute : PointcutAttribute { }
+public class EnableProxyLoggingAttribute : DecoratorAttribute { }
 
-public class LoggingAdvice(ILogger<LoggingAdvice> logger) : IAdvice<EnableProxyLoggingAttribute>
+public class LoggingBehavior(ILogger<LoggingBehavior> logger) : IBehavior<EnableProxyLoggingAttribute>
 {
     private int count = 0;
 
@@ -42,9 +42,9 @@ public class LoggingAdvice(ILogger<LoggingAdvice> logger) : IAdvice<EnableProxyL
     }
 }
 
-public class EnableSecondProxyLoggingAttribute : PointcutAttribute { }
+public class EnableSecondProxyLoggingAttribute : DecoratorAttribute { }
 
-public class SecondLoggingAdvice(ILogger<SecondLoggingAdvice> logger) : IAdvice<EnableSecondProxyLoggingAttribute>
+public class SecondLoggingBehavior(ILogger<SecondLoggingBehavior> logger) : IBehavior<EnableSecondProxyLoggingAttribute>
 {
     public object? Apply(MethodInvocationDetails invocationDetails)
     {

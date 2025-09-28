@@ -1,19 +1,19 @@
 namespace AoPeas.Internal;
 
 /// <summary>
-/// Aspect map for advice retrieval based on pointcut attribute type
+/// Aspect map for behavior retrieval based on decorator attribute type
 /// </summary>
 /// <param name="aspectMap"></param>
-public class AspectMap(Dictionary<Type, HashSet<IAdvice>> aspectMap)
+public class AspectMap(Dictionary<Type, HashSet<IBehavior>> aspectMap)
 {
     /// <summary>
-    /// Get advices based on pointcut type
+    /// Get behaviors based on decorator type
     /// </summary>
-    /// <param name="pointcutType"></param>
+    /// <param name="decoratorType"></param>
     /// <returns></returns>
-    public HashSet<IAdvice> GetAdvices(Type pointcutType) => aspectMap.GetValueOrDefault(pointcutType, []);
+    public HashSet<IBehavior> GetBehaviors(Type decoratorType) => aspectMap.GetValueOrDefault(decoratorType, []);
     /// <summary>
-    /// Check if the aspect map contains registered advices
+    /// Check if the aspect map contains registered behaviors
     /// </summary>
     /// <returns></returns>
     public bool IsEmpty() => aspectMap.Values.Count == 0;

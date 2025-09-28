@@ -1,9 +1,9 @@
 
 namespace AoPeas.Tests.Fixtures.Sut;
 
-public class LogCallsAttribute : PointcutAttribute { }
+public class LogCallsAttribute : DecoratorAttribute { }
 
-public class LogCalls : IAdvice<LogCallsAttribute>
+public class LogCalls : IBehavior<LogCallsAttribute>
 {
     private readonly List<string> logs = [];
 
