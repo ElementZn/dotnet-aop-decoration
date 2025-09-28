@@ -6,19 +6,19 @@ namespace AoPeas.Tests.Tests;
 
 public class AopProxyTests
 {
-    private readonly LogCalls logCallsDecorator;
-    private readonly CountCalls countCallsDecorator;
+    private readonly LogCallsBehavior logCallsDecorator;
+    private readonly CountCallsBehavior countCallsDecorator;
     private readonly ITestService proxySut;
 
     public AopProxyTests()
     {
-        logCallsDecorator = new LogCalls();
-        countCallsDecorator = new CountCalls();
+        logCallsDecorator = new LogCallsBehavior();
+        countCallsDecorator = new CountCallsBehavior();
         var aspectMap = new AspectMap(new()
         {
-            [typeof(PassthroughDecoratorAttribute)] = [new PassthroughDecorator()],
-            [typeof(LogCallsAttribute)] = [logCallsDecorator],
-            [typeof(CountCallsAttribute)] = [countCallsDecorator]
+            [typeof(PassthroughDecoratorAttribute)] = [new PassthroughBehavior()],
+            [typeof(LogCallsDecoratorAttribute)] = [logCallsDecorator],
+            [typeof(CountCallsDecoratorAttribute)] = [countCallsDecorator]
         });
         var testService = new TestService();
         proxySut = (ITestService)AopProxy.Create(typeof(ITestService), testService, aspectMap);

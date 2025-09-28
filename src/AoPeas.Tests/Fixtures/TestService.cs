@@ -9,13 +9,13 @@ public interface ITestService
     public int GetSum(int a, int b, int c);
 }
 
-[CountCalls]
+[CountCallsDecorator]
 public class TestService : ITestService
 {
     [PassthroughDecorator]
     public int GetIncrement(int a) => a + 1;
     [NoImplementedDecorator]
     public int GetSum(int a, int b) => a + b;
-    [LogCalls]
+    [LogCallsDecorator]
     public int GetSum(int a, int b, int c) => a + b + c;
 }

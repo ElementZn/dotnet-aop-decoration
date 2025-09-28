@@ -31,9 +31,9 @@ public class AopRegistrationTests
     public void GivenBehaviors_RegistersAopProxy()
     {
         servicesSut.AddScoped<ITestService, TestService>();
-        servicesSut.AddScoped<LogCalls>();
-        servicesSut.AddScoped<CountCalls>();
-        servicesSut.AddScoped<PassthroughDecorator>();
+        servicesSut.AddScoped<LogCallsBehavior>();
+        servicesSut.AddScoped<CountCallsBehavior>();
+        servicesSut.AddScoped<PassthroughBehavior>();
 
         servicesSut.AddAop();
 

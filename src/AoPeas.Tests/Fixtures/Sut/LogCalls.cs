@@ -1,9 +1,8 @@
-
 namespace AoPeas.Tests.Fixtures.Sut;
 
-public class LogCallsAttribute : DecoratorAttribute { }
+public class LogCallsDecoratorAttribute : DecoratorAttribute { }
 
-public class LogCalls : IBehavior<LogCallsAttribute>
+public class LogCallsBehavior : IBehavior<LogCallsDecoratorAttribute>
 {
     private readonly List<string> logs = [];
 

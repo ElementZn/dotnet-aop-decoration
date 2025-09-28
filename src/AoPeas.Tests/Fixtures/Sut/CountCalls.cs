@@ -1,9 +1,8 @@
-
 namespace AoPeas.Tests.Fixtures.Sut;
 
-public class CountCallsAttribute : DecoratorAttribute { }
+public class CountCallsDecoratorAttribute : DecoratorAttribute { }
 
-public class CountCalls : IBehavior<CountCallsAttribute>
+public class CountCallsBehavior : IBehavior<CountCallsDecoratorAttribute>
 {
     private int counter = 0;
 

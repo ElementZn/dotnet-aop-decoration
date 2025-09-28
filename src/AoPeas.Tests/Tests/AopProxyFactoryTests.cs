@@ -21,7 +21,7 @@ public class AopProxyFactoryTests
     public void GivenMismatchedTypes_WhenCreatingProxy_Throws()
     {
         var testService = new object();
-        var aspectMap = new AspectMap(new() { [typeof(PassthroughDecoratorAttribute)] = [new PassthroughDecorator()] });
+        var aspectMap = new AspectMap(new() { [typeof(PassthroughDecoratorAttribute)] = [new PassthroughBehavior()] });
 
         var exception = Record.Exception(() => AopProxy.Create(typeof(ITestService), testService, aspectMap));
 
@@ -32,7 +32,7 @@ public class AopProxyFactoryTests
     public void GivenValidParams_WhenCreatingProxy_ReturnsSuccess()
     {
         var testService = new TestService();
-        var aspectMap = new AspectMap(new() { [typeof(PassthroughDecoratorAttribute)] = [new PassthroughDecorator()] });
+        var aspectMap = new AspectMap(new() { [typeof(PassthroughDecoratorAttribute)] = [new PassthroughBehavior()] });
 
         var exception = Record.Exception(() => AopProxy.Create(typeof(ITestService), testService, aspectMap));
 
