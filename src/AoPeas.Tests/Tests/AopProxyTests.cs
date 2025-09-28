@@ -6,19 +6,19 @@ namespace AoPeas.Tests.Tests;
 
 public class AopProxyTests
 {
-    private readonly LogCallsBehavior logCallsDecorator;
-    private readonly CountCallsBehavior countCallsDecorator;
+    private readonly LogCallsBehavior logCallsBehavior;
+    private readonly CountCallsBehavior countCallsBehavior;
     private readonly ITestService proxySut;
 
     public AopProxyTests()
     {
-        logCallsDecorator = new LogCallsBehavior();
-        countCallsDecorator = new CountCallsBehavior();
+        logCallsBehavior = new LogCallsBehavior();
+        countCallsBehavior = new CountCallsBehavior();
         var aspectMap = new AspectMap(new()
         {
             [typeof(PassthroughDecoratorAttribute)] = [new PassthroughBehavior()],
-            [typeof(LogCallsDecoratorAttribute)] = [logCallsDecorator],
-            [typeof(CountCallsDecoratorAttribute)] = [countCallsDecorator]
+            [typeof(LogCallsDecoratorAttribute)] = [logCallsBehavior],
+            [typeof(CountCallsDecoratorAttribute)] = [countCallsBehavior]
         });
         var testService = new TestService();
         proxySut = (ITestService)AopProxy.Create(typeof(ITestService), testService, aspectMap);
@@ -42,7 +42,7 @@ public class AopProxyTests
 
         proxySut.GetSum(param1, param2);
 
-        var result = logCallsDecorator.GetLogs();
+        var result = logCallsBehavior.GetLogs();
         Assert.Empty(result);
     }
 
@@ -55,7 +55,7 @@ public class AopProxyTests
 
         proxySut.GetSum(param1, param2, param3);
 
-        var result = logCallsDecorator.GetLogs();
+        var result = logCallsBehavior.GetLogs();
         Assert.Equal(2, result.Count);
         var startLog = result[0];
         Assert.Contains($"arguments: {param1},{param2},{param3}", startLog);
@@ -74,7 +74,7 @@ public class AopProxyTests
         proxySut.GetSum(param1, param2);
         proxySut.GetSum(param1, param2, param3);
 
-        var result = countCallsDecorator.GetCounter();
+        var result = countCallsBehavior.GetCounter();
         Assert.Equal(3, result);
     }
 }
