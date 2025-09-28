@@ -1,9 +1,8 @@
-
 namespace AoPeas.Tests.Fixtures.Sut;
 
-public class CountCallsAttribute : PointcutAttribute { }
+public class CountCallsDecoratorAttribute : DecoratorAttribute { }
 
-public class CountCalls : IAdvice<CountCallsAttribute>
+public class CountCallsBehavior : IBehavior<CountCallsDecoratorAttribute>
 {
     private int counter = 0;
 

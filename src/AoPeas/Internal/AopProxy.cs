@@ -39,14 +39,14 @@ internal class AopProxy : DispatchProxy
             Next = () => implementedTargetMethod.Invoke(target, args)
         };
 
-        var pointcutTypes = GetOrderedPointcutTypes(implementedTargetMethod);
-        foreach (var pointcutType in pointcutTypes)
+        var decoratorTypes = GetOrderedDecoratorTypes(implementedTargetMethod);
+        foreach (var decoratorType in decoratorTypes)
         {
-            var advices = aspectMap.GetAdvices(pointcutType);
-            foreach (var advice in advices)
+            var behaviors = aspectMap.GetBehaviors(decoratorType);
+            foreach (var behavior in behaviors)
             {
                 var previousInvocationDetails = invocationDetails;
-                invocationDetails = invocationDetails with { Next = () => advice.Apply(previousInvocationDetails) };
+                invocationDetails = invocationDetails with { Next = () => behavior.Apply(previousInvocationDetails) };
             }
         }
         var result = invocationDetails.Next();
@@ -66,9 +66,9 @@ internal class AopProxy : DispatchProxy
         throw new InvalidOperationException($"No implementation for the specific method '{interfaceMethod.Name}'");
     }
 
-    private IEnumerable<Type> GetOrderedPointcutTypes(MethodInfo implementedTargetMethod)
+    private IEnumerable<Type> GetOrderedDecoratorTypes(MethodInfo implementedTargetMethod)
     {
-        return implementedTargetMethod.GetPointcutTypes().Reverse()
-            .Union(target.GetType().GetPointcutTypes().Reverse());
+        return implementedTargetMethod.GetDecoratorTypes().Reverse()
+            .Union(target.GetType().GetDecoratorTypes().Reverse());
     }
 }

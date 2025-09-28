@@ -6,19 +6,19 @@ namespace AoPeas.Tests.Tests;
 
 public class AopProxyTests
 {
-    private readonly LogCalls logCallsPointcut;
-    private readonly CountCalls countCallsPointcut;
+    private readonly LogCallsBehavior logCallsBehavior;
+    private readonly CountCallsBehavior countCallsBehavior;
     private readonly ITestService proxySut;
 
     public AopProxyTests()
     {
-        logCallsPointcut = new LogCalls();
-        countCallsPointcut = new CountCalls();
+        logCallsBehavior = new LogCallsBehavior();
+        countCallsBehavior = new CountCallsBehavior();
         var aspectMap = new AspectMap(new()
         {
-            [typeof(PassthroughPointcutAttribute)] = [new PassthroughPointcut()],
-            [typeof(LogCallsAttribute)] = [logCallsPointcut],
-            [typeof(CountCallsAttribute)] = [countCallsPointcut]
+            [typeof(PassthroughDecoratorAttribute)] = [new PassthroughBehavior()],
+            [typeof(LogCallsDecoratorAttribute)] = [logCallsBehavior],
+            [typeof(CountCallsDecoratorAttribute)] = [countCallsBehavior]
         });
         var testService = new TestService();
         proxySut = (ITestService)AopProxy.Create(typeof(ITestService), testService, aspectMap);
@@ -35,19 +35,19 @@ public class AopProxyTests
     }
 
     [Fact]
-    public void WhenCallingOverloadedMethod_AppliesCorrespondingAdvice()
+    public void WhenCallingOverloadedMethod_AppliesCorrespondingBehavior()
     {
         var param1 = 4;
         var param2 = 6;
 
         proxySut.GetSum(param1, param2);
 
-        var result = logCallsPointcut.GetLogs();
+        var result = logCallsBehavior.GetLogs();
         Assert.Empty(result);
     }
 
     [Fact]
-    public void WhenCallingMethod_AppliesAdvice()
+    public void WhenCallingMethod_AppliesBehavior()
     {
         var param1 = 4;
         var param2 = 6;
@@ -55,7 +55,7 @@ public class AopProxyTests
 
         proxySut.GetSum(param1, param2, param3);
 
-        var result = logCallsPointcut.GetLogs();
+        var result = logCallsBehavior.GetLogs();
         Assert.Equal(2, result.Count);
         var startLog = result[0];
         Assert.Contains($"arguments: {param1},{param2},{param3}", startLog);
@@ -64,7 +64,7 @@ public class AopProxyTests
     }
 
     [Fact]
-    public void GivenClassAdvice_WhenCallingMultipleMethods_AppliesAdvice()
+    public void GivenClassBehavior_WhenCallingMultipleMethods_AppliesBehavior()
     {
         var param1 = 4;
         var param2 = 6;
@@ -74,7 +74,7 @@ public class AopProxyTests
         proxySut.GetSum(param1, param2);
         proxySut.GetSum(param1, param2, param3);
 
-        var result = countCallsPointcut.GetCounter();
+        var result = countCallsBehavior.GetCounter();
         Assert.Equal(3, result);
     }
 }
