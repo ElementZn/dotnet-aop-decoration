@@ -59,6 +59,6 @@ public interface MainService : IMainService
 
 Example Output:
 ```shell
-Example.LoggingBehavior: Information: Start method 'GetSum', arguments: 5,7
-Example.LoggingBehavior: Information: End method 'GetSum', result: 12
+info: Example.LoggingBehavior[0] Start method 'GetSum', arguments: 5,7
+info: Example.LoggingBehavior[0] End method 'GetSum', result: 12
 ```

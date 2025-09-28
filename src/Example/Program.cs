@@ -12,7 +12,7 @@ public static class Program
         var builder = Host.CreateApplicationBuilder(args);
 
         builder.Logging.ClearProviders();
-        builder.Logging.AddDebug();
+        builder.Logging.AddSimpleConsole(o => o.SingleLine = true);
 
         var services = builder.Services;
         services.AddScoped<IMainService, MainService>();
