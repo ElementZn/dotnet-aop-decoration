@@ -1,6 +1,6 @@
-using AoPeas.Tests.Fixtures.Sut;
+using AopLite.Tests.Fixtures.Sut;
 
-namespace AoPeas.Tests.Fixtures;
+namespace AopLite.Tests.Fixtures;
 
 public interface ITestService
 {

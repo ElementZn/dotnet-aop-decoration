@@ -1,8 +1,8 @@
-using AoPeas.Internal;
-using AoPeas.Tests.Fixtures;
-using AoPeas.Tests.Fixtures.Sut;
+using AopLite.Internal;
+using AopLite.Tests.Fixtures;
+using AopLite.Tests.Fixtures.Sut;
 
-namespace AoPeas.Tests.Tests;
+namespace AopLite.Tests.Tests;
 
 public class AopProxyFactoryTests
 {

@@ -4,7 +4,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PackageId>ElementZn.AoPeas</PackageId>
+    <PackageId>ElementZn.AopLite</PackageId>
     <Version>1.0.0</Version>
     <Authors>ElementZn</Authors>
     <Description>AoP Library for .Net</Description>
@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="AoPeas.Tests" />
+    <InternalsVisibleTo Include="AopLite.Tests" />
   </ItemGroup>
 
 </Project>

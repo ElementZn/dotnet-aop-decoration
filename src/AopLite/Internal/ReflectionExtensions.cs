@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace AoPeas.Internal;
+namespace AopLite.Internal;
 
 public static class ReflectionExtensions
 {

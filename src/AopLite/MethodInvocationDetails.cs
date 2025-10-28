@@ -1,4 +1,4 @@
-namespace AoPeas;
+namespace AopLite;
 
 /// <summary>
 /// Details for the invoked method

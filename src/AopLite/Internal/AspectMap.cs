@@ -1,4 +1,4 @@
-namespace AoPeas.Internal;
+namespace AopLite.Internal;
 
 /// <summary>
 /// Aspect map for behavior retrieval based on decorator attribute type

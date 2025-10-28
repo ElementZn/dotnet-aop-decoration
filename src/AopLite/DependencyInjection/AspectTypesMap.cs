@@ -1,7 +1,7 @@
-using AoPeas.Internal;
+using AopLite.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AoPeas.DependencyInjection;
+namespace AopLite.DependencyInjection;
 
 /// <summary>
 /// Stores the association between behavior types and decorator types

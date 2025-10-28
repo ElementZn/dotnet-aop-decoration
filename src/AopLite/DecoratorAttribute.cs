@@ -1,4 +1,4 @@
-namespace AoPeas;
+namespace AopLite;
 
 /// <summary>
 /// Attribute for the decorator, which specifies when a behavior should be applied

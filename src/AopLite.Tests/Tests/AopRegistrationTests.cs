@@ -1,10 +1,10 @@
-using AoPeas.DependencyInjection;
-using AoPeas.Internal;
-using AoPeas.Tests.Fixtures;
-using AoPeas.Tests.Fixtures.Sut;
+using AopLite.DependencyInjection;
+using AopLite.Internal;
+using AopLite.Tests.Fixtures;
+using AopLite.Tests.Fixtures.Sut;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AoPeas.Tests.Tests;
+namespace AopLite.Tests.Tests;
 
 public class AopRegistrationTests
 {

@@ -1,4 +1,4 @@
-namespace AoPeas.Tests.Fixtures.Sut;
+namespace AopLite.Tests.Fixtures.Sut;
 
 public class PassthroughDecoratorAttribute : DecoratorAttribute { }
 

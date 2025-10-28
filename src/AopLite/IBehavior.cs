@@ -1,4 +1,4 @@
-namespace AoPeas;
+namespace AopLite;
 
 /// <summary>
 /// Interface for implementing a behavior, which specifies the code to be run

@@ -1,7 +1,7 @@
-using AoPeas.Internal;
+using AopLite.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AoPeas.DependencyInjection;
+namespace AopLite.DependencyInjection;
 
 public static class AopExtensions
 {
